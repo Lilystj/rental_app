@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5" data-has-active="{{ 'true' if active_subscription else 'false' }}" data-current-plan-id="{{ active_subscription.plan_id if active_subscription else 'null' }}">
+    {% if session.get('role') == 'admin' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">Administrators should manage subscription plans and user subscriptions from the <a href="/admin/subscriptions">admin panel</a>.</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fadeInUp" style="animation: fadeInUp 0.6s ease-out;">Premium Subscriptions</h1>
+            <p class="text-muted fadeInUp" style="animation: fadeInUp 0.8s ease-out; animation-delay: 0.1s;">Unlock exclusive benefits with our affordable subscription plans</p>
+        </div>
+    </div>
+
+    <!-- Active Subscription Alert -->
+    {% if active_subscription %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-success alert-dismissible fade show" role="alert" style="animation: slideDown 0.6s ease-out; border-left: 4px solid #4caf50;">
+                <h5 class="alert-heading"><i class="fas fa-check-circle"></i> Active Subscription</h5>
+                <p class="mb-2">You are currently subscribed to the <strong>{{ active_subscription.plan.name }}</strong> plan.</p>
+                <p class="mb-0"><strong>Valid until:</strong> {{ active_subscription.end_date.strftime('%B %d, %Y') }}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Why Subscribe Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Why Choose Our Premium Plans?</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="benefit-card">
+                <div class="benefit-icon">💰</div>
+                <h5>Save More</h5>
+                <p>Get exclusive discounts on every booking and save up to 30% on your rental costs.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="benefit-card">
+                <div class="benefit-icon">🚗</div>
+                <h5>Priority Access</h5>
+                <p>Get first access to new vehicles and priority booking on popular cars in your area.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="benefit-card">
+                <div class="benefit-icon">🛡️</div>
+                <h5>Flexible Cancellation</h5>
+                <p>Cancel your bookings with zero penalty during the free cancellation window.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Plans -->
+    <div class="row mb-5" id="plansContainer">
+        {% if plans and plans | length > 0 %}
+            {% for plan in plans %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="plan-card {% if active_subscription and active_subscription.plan_id == plan.id %}active{% endif %}" id="plan-{{ plan.id }}">
+                    <div class="plan-name">{{ plan.name }}</div>
+                    <div class="plan-price">₹{{ plan.price_per_month }}<small>/month</small></div>
+                    <p class="text-muted">{{ plan.description }}</p>
+                    <ul class="plan-features">
+                        <li>{{ plan.discount_percent }}% discount on bookings</li>
+                        <li>{{ plan.free_cancellation_hours }} hours free cancellation</li>
+                        <li>Up to {{ plan.rental_limit_per_month or 'Unlimited' }} rentals/month</li>
+                        {% if plan.priority_booking %}<li>Priority booking</li>{% endif %}
+                    </ul>
+                    {% if active_subscription and active_subscription.plan_id == plan.id %}
+                        <button class="btn btn-success btn-current" disabled>
+                            <i class="fas fa-check-circle"></i> Current Plan
+                        </button>
+                    {% elif active_subscription %}
+                        <button class="btn btn-warning btn-upgrade" 
+                            data-plan-id="{{ plan.id }}" 
+                            data-plan-name='{{ plan.name|tojson }}' 
+                            data-plan-price="{{ plan.price_per_month }}" 
+                            onclick="upgradePlan(this)">
+                            <i class="fas fa-arrow-up"></i> Upgrade to {{ plan.name }}
+                        </button>
+                    {% else %}
+                        <button class="btn btn-primary btn-subscribe" 
+                            data-plan-id="{{ plan.id }}" 
+                            data-plan-name='{{ plan.name|tojson }}' 
+                            data-plan-price="{{ plan.price_per_month }}" 
+                            onclick="selectPlanFromButton(this)">
+                            Select Plan
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <p class="text-center text-muted">No subscription plans are available at the moment. Please check back later or contact support.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Features Comparison -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Feature Comparison</h2>
+            <div class="table-responsive">
+                <table class="table table-hover comparison-table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Basic</th>
+                            <th>Premium</th>
+                            <th>Elite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Discount Per Booking</strong></td>
+                            <td>10%</td>
+                            <td>20%</td>
+                            <td>30%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Free Cancellation Hours</strong></td>
+                            <td>6 hours</td>
+                            <td>24 hours</td>
+                            <td>48 hours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Monthly Rental Limit</strong></td>
+                            <td>5</td>
+                            <td>15</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Priority Booking</strong></td>
+                            <td>❌</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>24/7 Support</strong></td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Special Events Access</strong></td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4 text-center">Frequently Asked Questions</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Can I cancel my subscription anytime?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, you can cancel your subscription at any time from your dashboard. The cancellation will be effective from the next billing cycle.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            Is there a trial period?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! We offer 7 days free trial for new users on any premium plan. No credit card required to start your trial.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Can I upgrade or downgrade my plan?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Absolutely! You can upgrade or downgrade your plan at any time. Changes take effect immediately or in the next billing cycle depending on your wish.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            Are all payment methods accepted?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept all major credit cards, debit cards, UPI, and net banking through Razorpay. All transactions are secure and encrypted.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            Do discounts stack with other offers?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Subscription discounts are automatically applied. Additional promotional codes may not be combined. Our system will apply the best available discount for you.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <div class="support-card">
+                <h3>Have Questions?</h3>
+                <p class="text-muted mb-4">Our support team is here to help you with any questions about our subscription plans.</p>
+                <a href="/contact" class="btn btn-primary btn-lg">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .benefit-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+        border: 2px solid #e3f2fd;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(33, 150, 243, 0.15);
+        border-color: #2196F3;
+    }
+
+    .benefit-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+
+    .benefit-card h5 {
+        color: #333;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .benefit-card p {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .comparison-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .comparison-table th {
+        background-color: #333 !important;
+        color: white;
+        font-weight: bold;
+    }
+
+    .comparison-table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .comparison-table tbody td {
+        vertical-align: middle;
+        padding: 15px;
+        border-color: #e0e0e0;
+    }
+
+    .support-card {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border: 2px solid #ffb74d;
+        border-radius: 12px;
+        padding: 50px;
+        margin-top: 30px;
+    }
+
+    .support-card h3 {
+        color: #ff9800;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #ff9800;
+        color: white;
+    }
+
+    .accordion-button:focus {
+        border-color: #ff9800;
+        box-shadow: 0 0 0 0.25rem rgba(255, 152, 0, 0.25);
+    }
+
+    .plan-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(255, 152, 0, 0.2);
+        border-color: #ff9800;
+    }
+
+    .plan-card.active {
+        border-color: #4caf50;
+        background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+    }
+
+    .plan-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .plan-price {
+        font-size: 32px;
+        color: #ff9800;
+        font-weight: bold;
+        margin: 15px 0;
+    }
+
+    .plan-price small {
+        font-size: 14px;
+        color: #999;
+        display: block;
+        margin-top: 5px;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+    }
+
+    .plan-features li {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        color: #181c20; /* darker text for clarity */
+    }
+
+    .plan-features li:last-child {
+        border-bottom: none;
+    }
+
+    .plan-features li::before {
+        content: "✓";
+        color: #181c20; /* black tick */
+        font-weight: bold;
+        margin-right: 10px;
+        font-size: 18px;
+    }
+
+    .btn-subscribe {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .btn-subscribe:hover {
+        transform: scale(1.02);
+    }
+
+    .btn-current {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        border: none;
+        color: white;
+    }
+
+    .btn-upgrade {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        border: none;
+        color: #181c20;
+        transition: all 0.3s ease;
+    }
+
+    .btn-upgrade:hover {
+        transform: scale(1.02);
+        background: linear-gradient(135deg, #ffb74d, #ffcc02);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+{% if session.get('role') != 'admin' %}
+<script>
+    let selectedPlan = null;
+    let planId = null;
+
+    // Subscription data from server
+    const container = document.querySelector('.container');
+    const hasActiveSubscription = container.dataset.hasActive === 'true';
+    const currentPlanId = container.dataset.currentPlanId === 'null' ? null : parseInt(container.dataset.currentPlanId);
+
+    // Load subscription plans
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/subscriptions/plans', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPlans(data.plans);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    function displayPlans(plans) {
+        const container = document.getElementById('plansContainer');
+        container.innerHTML = '';
+
+        plans.forEach((plan, index) => {
+            let buttonHtml = '';
+            let cardClass = 'plan-card';
+
+            if (hasActiveSubscription && currentPlanId === plan.id) {
+                // Current plan
+                buttonHtml = `<button class="btn btn-success btn-current" disabled>
+                    <i class="fas fa-check-circle"></i> Current Plan
+                </button>`;
+                cardClass += ' active';
+            } else if (hasActiveSubscription) {
+                // Has subscription but different plan - show upgrade option
+                buttonHtml = `<button class="btn btn-warning btn-upgrade" onclick="upgradePlanFromJs(${plan.id}, '${plan.name}', ${plan.price_per_month})">
+                    <i class="fas fa-arrow-up"></i> Upgrade to ${plan.name}
+                </button>`;
+            } else {
+                // No subscription - show select plan
+                buttonHtml = `<button class="btn btn-primary btn-subscribe" onclick="selectPlan(${plan.id}, '${plan.name}', ${plan.price_per_month})">
+                    Select Plan
+                </button>`;
+            }
+
+            const planHtml = `
+                <div class="col-md-6 col-lg-4" style="animation: fadeInUp 0.6s ease-out; animation-delay: ${index * 0.1}s;">
+                    <div class="${cardClass}" id="plan-${plan.id}">
+                        <div class="plan-name">${plan.name}</div>
+                        <div class="plan-price">₹${plan.price_per_month}<small>/month</small></div>
+                        
+                        <p class="text-muted">${plan.description}</p>
+                        
+                        <ul class="plan-features">
+                            <li>${plan.discount_percent}% discount on all bookings</li>
+                            <li>${plan.free_cancellation_hours} hours free cancellation</li>
+                            <li>Up to ${plan.rental_limit_per_month} rentals/month</li>
+                            ${plan.priority_booking ? '<li>Priority booking on new vehicles</li>' : ''}
+                        </ul>
+                        
+                        ${buttonHtml}
+                    </div>
+                </div>
+            `;
+            container.innerHTML += planHtml;
+        });
+    }
+
+    function selectPlan(id, name, price) {
+        planId = id;
+        selectedPlan = { id, name, price };
+        
+        // Redirect to subscription payment page
+        window.location.href = `/pay-subscription/${id}`;
+    }
+
+    function selectPlanFromButton(btn) {
+        const id = btn.getAttribute('data-plan-id');
+        const name = btn.getAttribute('data-plan-name');
+        const price = btn.getAttribute('data-plan-price');
+        selectPlan(id, name, price);
+    }
+
+    function upgradePlan(btn) {
+        const id = btn.getAttribute('data-plan-id');
+        const name = btn.getAttribute('data-plan-name');
+        const price = btn.getAttribute('data-plan-price');
+        
+        if (confirm(`Are you sure you want to upgrade to the ${name} plan? Your current subscription will be cancelled and the new plan will start immediately.`)) {
+            selectPlan(id, name, price);
+        }
+    }
+
+    function upgradePlanFromJs(id, name, price) {
+        if (confirm(`Are you sure you want to upgrade to the ${name} plan? Your current subscription will be cancelled and the new plan will start immediately.`)) {
+            selectPlan(id, name, price);
+        }
+    }
+</script>
+{% endif %}
+{% endblock %}

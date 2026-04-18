@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero text-white container mb-4">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="display-5 fw-bold">Your Story & Mission Awaits.</h1>
+      <p class="lead muted">We connect people with great rides — premium cars and bikes for every journey.</p>
+      <a class="btn btn-accent" href="/vehicles">Rent Now</a>
+    </div>
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row text-center mb-4">
+    <div class="col-md-4">
+      <h5>Who We Are</h5>
+      <p class="muted small">We are a team dedicated to providing safe, reliable and modern vehicles for your travels.</p>
+    </div>
+    <div class="col-md-4">
+      <h5>What We Offer</h5>
+      <p class="muted small">A curated fleet of cars and bikes, flexible booking, and transparent pricing.</p>
+    </div>
+    <div class="col-md-4">
+      <h5>Our Commitment</h5>
+      <p class="muted small">We put safety and customer experience first on every rental.</p>
+    </div>
+  </div>
+
+  <div class="row text-center mt-4">
+    <div class="col-12">
+      <h4 class="mb-3">Meet the Team</h4>
+    </div>
+    <div class="col-md-4">
+      <img src="{{ url_for('static', filename='uploads/team1.jpg') }}" class="rounded-circle" width="80" height="80" alt="lily">
+      <div class="mt-2">Lily</div>
+    </div>
+    <div class="col-md-4">
+      <img src="{{ url_for('static', filename='uploads/team2.jpg') }}" class="rounded-circle" width="80" height="80" alt="Jane">
+      <div class="mt-2">Jane Smith</div>
+    </div>
+    <div class="col-md-4">
+      <img src="{{ url_for('static', filename='uploads/team3.jpg') }}" class="rounded-circle" width="80" height="80" alt="Alex">
+      <div class="mt-2">Alex Johnson</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

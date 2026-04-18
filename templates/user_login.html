@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <span class="login-badge user-badge">👤 User</span>
+            <h2>User Login</h2>
+            <p>Access your vehicle bookings and account</p>
+        </div>
+
+        <form method="post" class="login-form">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input 
+                    type="text" 
+                    id="username"
+                    name="username" 
+                    class="form-control" 
+                    placeholder="Enter your username" 
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    id="password"
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Enter your password" 
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+                Login as User
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p>Don't have an account? <a href="/register">Register here</a></p>
+            <p><a href="/login-select" class="back-link">← Back to login selection</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: linear-gradient(135deg, #0f1115 0%, #1a1d23 50%, #0e1014 100%);
+    }
+
+    .login-card {
+        background: rgba(35, 39, 43, 0.95);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        border-radius: 16px;
+        padding: 3rem;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        background: rgba(255, 152, 0, 0.2);
+        border: 1px solid rgba(255, 152, 0, 0.4);
+        color: #ffb74d;
+    }
+
+    .login-badge.user-badge {
+        background: rgba(255, 152, 0, 0.15);
+        border-color: rgba(255, 152, 0, 0.3);
+    }
+
+    .login-badge.admin-badge {
+        background: rgba(33, 150, 243, 0.15);
+        border-color: rgba(33, 150, 243, 0.3);
+        color: #64b5f6;
+    }
+
+    .login-header h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0.5rem 0;
+    }
+
+    .login-header p {
+        color: #aaa;
+        font-size: 0.95rem;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .login-form {
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        color: #fff;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 152, 0, 0.05);
+        border: 1px solid rgba(255, 152, 0, 0.3);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        background: rgba(255, 152, 0, 0.1);
+        border-color: rgba(255, 152, 0, 0.6);
+        box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #666;
+    }
+
+    .btn-lg {
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .login-footer {
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 152, 0, 0.1);
+    }
+
+    .login-footer p {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
+
+    .login-footer a {
+        color: #ffb74d;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    .login-footer a:hover {
+        color: #ff9800;
+        text-decoration: underline;
+    }
+
+    .back-link {
+        color: #90caf9 !important;
+    }
+
+    .back-link:hover {
+        color: #64b5f6 !important;
+    }
+
+    /* Login page animations */
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes formFieldGlow {
+        0%, 100% {
+            border-color: rgba(255, 152, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.1);
+        }
+        50% {
+            border-color: rgba(255, 152, 0, 0.6);
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.2);
+        }
+    }
+
+    @keyframes buttonPulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+        }
+    }
+
+    .login-container {
+        animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .login-card {
+        animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 152, 0, 0.1), transparent);
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .login-header {
+        animation: fadeInDown 0.6s ease-out;
+    }
+
+    .login-badge {
+        animation: slideInDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .login-header h2 {
+        animation: fadeInDown 0.7s ease-out 0.2s backwards;
+    }
+
+    .login-header p {
+        animation: fadeInDown 0.7s ease-out 0.3s backwards;
+    }
+
+    .form-group {
+        animation: fadeInUp 0.6s ease-out backwards;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.4s; }
+    .form-group:nth-child(2) { animation-delay: 0.5s; }
+
+    .form-control {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .form-control:focus {
+        animation: formFieldGlow 1.5s ease-in-out infinite;
+        transform: translateY(-2px);
+    }
+
+    button[type="submit"] {
+        animation: fadeInUp 0.6s ease-out 0.6s backwards;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    button[type="submit"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    button[type="submit"]:hover::before {
+        left: 100%;
+    }
+
+    button[type="submit"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+    }
+
+    button[type="submit"]:active {
+        animation: buttonPulse 0.6s ease-out;
+    }
+
+    .login-footer {
+        animation: fadeInUp 0.6s ease-out 0.7s backwards;
+    }
+
+    .login-footer a {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .login-footer a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #ffb74d, #ff9800);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .login-footer a:hover::after {
+        width: 100%;
+    }
+
+    @media (max-width: 480px) {
+        .login-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .login-header h2 {
+            font-size: 1.5rem;
+        }
+    }
+
+</style>
+{% endblock %}

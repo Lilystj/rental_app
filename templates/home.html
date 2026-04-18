@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero-wrap">
+  <div class="hero text-white container">
+    <div class="row">
+      <div class="col-lg-8">
+        <h1 class="display-5 fw-bold">Your Journey Awaits.</h1>
+        <p class="lead muted">Explore premium cars and bikes — seamless booking, reliable service.</p>
+        <a class="btn btn-accent" href="/login-select">Get Started</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container login-panels">
+    <div class="card login-card card-dark">
+      <div class="card-body">
+        <h5 class="mb-3">👤 User Login</h5>
+        <p class="muted small mb-3">Access your vehicle bookings and rentals</p>
+        <a href="/user/login" class="btn btn-accent w-100">Continue as User</a>
+        <div class="mt-3 muted small">Don't have an account? <a href="/register">Register Now</a></div>
+      </div>
+    </div>
+
+    <div class="card login-card card-dark">
+      <div class="card-body">
+        <h5 class="mb-3">⚙️ Admin Login</h5>
+        <p class="muted small mb-3">Manage vehicles, users, and bookings</p>
+        <a href="/admin/login" class="btn btn-outline-warning w-100">Continue as Admin</a>
+        <div class="mt-3 muted small">Admin credentials required for access</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

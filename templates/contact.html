@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  #map {
+    height: 400px;
+    border-radius: 8px;
+    z-index: 1;
+  }
+  .map-container {
+    position: relative;
+  }
+</style>
+
+<div class="hero text-white container mb-4">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="display-5 fw-bold">Get In Touch</h1>
+      <p class="lead muted">We'd love to hear from you — questions, feedback or partnership inquiries.</p>
+    </div>
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card card-dark p-3">
+        <h5>Send us a message</h5>
+        <form method="post" action="#">
+          <div class="mb-2"><input class="form-control" placeholder="Your Name"></div>
+          <div class="mb-2"><input class="form-control" placeholder="Your Email"></div>
+          <div class="mb-2"><input class="form-control" placeholder="Subject"></div>
+          <div class="mb-2"><textarea class="form-control" rows="5" placeholder="Your Message"></textarea></div>
+          <div><button class="btn btn-accent">Send Message</button></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card card-dark p-3">
+        <h5>Contact Details</h5>
+        <p class="muted small">Email: info@wheelshare.example</p>
+        <p class="muted small">Phone: 8778408795</p>
+        <div class="mt-3 map-container">
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  // Initialize map with your business location (Update these coordinates)
+  const latitude = 28.6139;  // Default: Delhi, India - Change to your location
+  const longitude = 77.2090;
+  
+  const map = L.map('map').setView([latitude, longitude], 15);
+  
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
+  
+  // Add marker at business location
+  const marker = L.marker([latitude, longitude]).addTo(map);
+  marker.bindPopup('<b>WheelShare Rental</b><br>Visit us here!').openPopup();
+</script>
+
+{% endblock %}

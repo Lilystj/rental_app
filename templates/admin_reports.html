@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - WheelShare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        /* Static dark background for admin panel */
+        body {
+            background: #0f1115;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+      /* Remove static background to allow animated background from base.html */
+      body { color: #fff; min-height: 100vh; }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem 1rem 2.5rem;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .report-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .report-tab {
+        background: #20242a;
+        border: 2px solid #23272b;
+        color: #fff;
+        padding: 0.8rem 1.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+      }
+      .report-tab.active {
+        background: #ff9800;
+        border-color: #ff9800;
+        color: #181c20;
+      }
+      .report-tab:hover {
+        border-color: #ff9800;
+      }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 0 12px #ff980040;
+        padding: 2rem;
+      }
+      .report-section {
+        display: none;
+      }
+      .report-section.active {
+        display: block;
+      }
+      .report-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid #20242a;
+      }
+      .report-row:last-child {
+        border-bottom: none;
+      }
+      .report-label {
+        color: #aaa;
+      }
+      .report-value {
+        font-weight: 700;
+        color: #ff9800;
+        font-size: 1.2rem;
+      }
+      .export-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .btn-export {
+        background: #ff9800;
+        color: #181c20;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+      .btn-export:hover {
+        background: #ffa726;
+      }
+      .data-table {
+        width: 100%;
+        margin-top: 1.5rem;
+      }
+      .data-table th {
+        background: #20242a;
+        color: #ff9800;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 2px solid #ff9800;
+      }
+      .data-table td {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid #20242a;
+      }
+      @media (max-width: 1100px) {
+        .main-content { margin-left: 0; padding: 1rem; }
+        .sidebar { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid #23272b; }
+      }
+      @media print {
+        .sidebar, .admin-topbar, .report-tabs, .export-buttons { display: none !important; }
+        .main-content { margin-left: 0; padding: 1.5rem; }
+        
+        body { background: #fff !important; color: #000 !important; }
+        .card-dark { 
+          background: #fff !important; 
+          color: #000 !important;
+          border: 1px solid #ccc !important;
+          box-shadow: none !important;
+        }
+        
+        .report-section { display: block !important; }
+        .report-value { 
+          color: #d97706 !important;
+          -webkit-text-fill-color: #d97706 !important;
+        }
+        .report-label { color: #666 !important; }
+        
+        .data-table { 
+          width: 100% !important;
+          border-collapse: collapse !important;
+          margin: 1rem 0 !important;
+        }
+        .data-table th {
+          background: #f3f4f6 !important;
+          color: #000 !important;
+          padding: 0.8rem !important;
+          border: 1px solid #ddd !important;
+          font-weight: 600 !important;
+        }
+        .data-table td {
+          padding: 0.8rem !important;
+          border: 1px solid #ddd !important;
+          color: #000 !important;
+        }
+        .data-table tbody tr:nth-child(even) {
+          background: #f9f9f9 !important;
+        }
+        
+        h3, h4, h5 { color: #000 !important; }
+        .chart-container { display: none !important; }
+        
+        .user-selector, .user-report-placeholder { display: none !important; }
+        .stat-card {
+          background: #f3f4f6 !important;
+          border: 1px solid #ddd !important;
+          color: #000 !important;
+        }
+        .stat-card-value { color: #d97706 !important; }
+        .stat-card-label { color: #666 !important; }
+        
+        .report-row {
+          display: flex !important;
+          justify-content: space-between !important;
+          padding: 0.8rem 0 !important;
+          border-bottom: 1px solid #ddd !important;
+        }
+      }
+
+      /* Enhanced Animations for Reports Page */
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes countUp {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes gradientShift {
+        0%, 100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      @keyframes borderGlow {
+        0%, 100% {
+          border-color: rgba(255, 152, 0, 0.3);
+          box-shadow: 0 0 10px rgba(255, 152, 0, 0.1);
+        }
+        50% {
+          border-color: rgba(255, 152, 0, 0.6);
+          box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
+        }
+      }
+
+      /* Animate card on load */
+      .card-dark {
+        animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 2px solid rgba(255, 152, 0, 0.2);
+      }
+
+      .card-dark:hover {
+        animation: borderGlow 2s ease-in-out infinite;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(255, 152, 0, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Animate report tabs */
+      .report-tab {
+        animation: slideInLeft 0.5s ease-out backwards;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .report-tab:nth-child(1) { animation-delay: 0.1s; }
+      .report-tab:nth-child(2) { animation-delay: 0.2s; }
+      .report-tab:nth-child(3) { animation-delay: 0.3s; }
+      .report-tab:nth-child(4) { animation-delay: 0.4s; }
+
+      .report-tab::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .report-tab:hover::before {
+        left: 100%;
+      }
+
+      .report-tab:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+      }
+
+      /* Animate report values with number counting effect */
+      .report-value {
+        animation: countUp 0.8s ease-out;
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+      }
+
+      /* Animate report rows */
+      .report-row {
+        animation: fadeInUp 0.5s ease-out backwards;
+        transition: all 0.3s ease;
+        padding: 1rem 0;
+        border-radius: 6px;
+      }
+
+      .report-row:nth-child(1) { animation-delay: 0.1s; }
+      .report-row:nth-child(2) { animation-delay: 0.2s; }
+      .report-row:nth-child(3) { animation-delay: 0.3s; }
+      .report-row:nth-child(4) { animation-delay: 0.4s; }
+      .report-row:nth-child(5) { animation-delay: 0.5s; }
+      .report-row:nth-child(6) { animation-delay: 0.6s; }
+
+      .report-row:hover {
+        background: rgba(255, 152, 0, 0.08);
+        padding-left: 0.5rem;
+        transform: scale(1.02);
+      }
+
+      /* Animate export buttons */
+      .btn-export {
+        animation: slideInRight 0.5s ease-out backwards;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .btn-export:nth-child(1) { animation-delay: 0.2s; }
+      .btn-export:nth-child(2) { animation-delay: 0.3s; }
+
+      .btn-export::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      .btn-export:active::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .btn-export:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+      }
+
+      /* Animate data table rows */
+      .data-table tbody tr {
+        animation: fadeInUp 0.5s ease-out backwards;
+        transition: all 0.3s ease;
+      }
+
+      .data-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+      .data-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+      .data-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+      .data-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+      .data-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+
+      .data-table tbody tr:hover {
+        background: rgba(255, 152, 0, 0.12);
+        transform: scale(1.01);
+        box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.1);
+      }
+
+      /* Animate report header */
+      .admin-topbar .title {
+        animation: slideInLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* Smooth section transitions */
+      .report-section {
+        animation: fadeInUp 0.4s ease-out;
+      }
+
+      .report-section.active {
+        animation: fadeInUp 0.4s ease-out;
+      }
+
+      /* Sidebar animation */
+      .sidebar {
+        animation: slideInLeft 0.5s ease-out;
+      }
+
+      /* Loading state animation */
+      .loading {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Chart styling */
+      .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: rgba(255, 152, 0, 0.02);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+      }
+
+      .chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      @media (max-width: 1200px) {
+        .chart-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .user-selector {
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .user-selector select {
+        background: #20242a;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+        color: #fff;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        flex: 1;
+        max-width: 350px;
+      }
+
+      .user-selector select:focus {
+        outline: none;
+        border-color: #ff9800;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
+      }
+
+      .btn-load-user-report {
+        background: #ff9800;
+        color: #181c20;
+        padding: 0.6rem 1.5rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .btn-load-user-report:hover {
+        background: #ffa726;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+      }
+
+      .user-report-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: rgba(255, 152, 0, 0.05);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .stat-card-label {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card-value {
+        color: #ff9800;
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+    
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link active" href="/admin/reports">Reports</a>
+    </div>
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">Reports & Analytics</div>
+            <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+        </div>
+        
+        <!-- Report Tabs -->
+        <div class="report-tabs">
+            <button class="report-tab active" onclick="switchReport('revenue')">Revenue Report</button>
+            <button class="report-tab" onclick="switchReport('booking')">Booking Report</button>
+            <button class="report-tab" onclick="switchReport('user')">User Report</button>
+            <button class="report-tab" onclick="switchReport('vehicle')">Vehicle Report</button>
+            <button class="report-tab" onclick="switchReport('user-specific')">User-Specific Reports</button>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="export-buttons">
+            <button class="btn-export" onclick="printReport()">🖨️ Print</button>
+            <button class="btn-export" onclick="downloadPDF()">📄 PDF</button>
+        </div>
+
+        <!-- Revenue Report -->
+        <div id="revenue-report" class="report-section active">
+            <div class="card-dark">
+                <h3 class="mb-3">💰 Revenue Report</h3>
+                <div class="report-row">
+                    <span class="report-label">Total Revenue</span>
+                    <span class="report-value" id="revenue-total">₹0</span>
+                </div>
+                
+                <h4 style="margin-top: 2rem; margin-bottom: 1rem;">Monthly Revenue Distribution</h4>
+                <div class="chart-row">
+                    <div class="chart-container">
+                        <canvas id="monthly-revenue-pie"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthly-revenue-bar"></canvas>
+                    </div>
+                </div>
+
+                <h4>Monthly Revenue Breakdown</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="revenue-table-body">
+                    </tbody>
+                </table>
+                <div style="margin-top: 2rem;">
+                    <h4>Vehicle-wise Earnings</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle</th>
+                                <th>Earnings</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicle-earnings-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Report -->
+        <div id="booking-report" class="report-section">
+            <div class="card-dark">
+                <h3 class="mb-3">📅 Booking Report</h3>
+                <div class="report-row">
+                    <span class="report-label">Total Bookings</span>
+                    <span class="report-value" id="booking-total">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Completed</span>
+                    <span class="report-value" id="booking-completed">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Confirmed</span>
+                    <span class="report-value" id="booking-confirmed">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Cancelled</span>
+                    <span class="report-value" id="booking-cancelled">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Most Rented Vehicle</span>
+                    <span class="report-value" id="most-rented">N/A</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Report -->
+        <div id="user-report" class="report-section">
+            <div class="card-dark">
+                <h3 class="mb-3">👥 User Report</h3>
+                <div class="report-row">
+                    <span class="report-label">Total Users</span>
+                    <span class="report-value" id="user-total">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Active Users</span>
+                    <span class="report-value" id="user-active">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Blocked Users</span>
+                    <span class="report-value" id="user-blocked">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Report -->
+        <div id="vehicle-report" class="report-section">
+            <div class="card-dark">
+                <h3 class="mb-3">🚗 Vehicle Utilization Report</h3>
+                <div class="report-row">
+                    <span class="report-label">Total Vehicles</span>
+                    <span class="report-value" id="vehicle-total">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Available</span>
+                    <span class="report-value" id="vehicle-available">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Booked</span>
+                    <span class="report-value" id="vehicle-booked">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Maintenance</span>
+                    <span class="report-value" id="vehicle-maintenance">0</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Most Used Vehicle</span>
+                    <span class="report-value" id="most-used">N/A</span>
+                </div>
+                <div class="report-row">
+                    <span class="report-label">Least Used Vehicle</span>
+                    <span class="report-value" id="least-used">N/A</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- User-Specific Reports -->
+        <div id="user-specific-report" class="report-section">
+            <div class="card-dark">
+                <h3 class="mb-4">👤 User-Specific Reports</h3>
+                
+                <div class="user-selector">
+                    <select id="user-selector" onchange="loadUserList()">
+                        <option value="">Select a user...</option>
+                    </select>
+                    <button class="btn-load-user-report" onclick="loadSelectedUserReport()">Load Report</button>
+                </div>
+
+                <div id="user-report-content" style="display: none;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="color: #ff9800; margin-bottom: 1rem;">User Information</h5>
+                        <div class="report-row">
+                            <span class="report-label">Username</span>
+                            <span class="report-value" id="user-info-name">-</span>
+                        </div>
+                        <div class="report-row">
+                            <span class="report-label">Email</span>
+                            <span class="report-value" style="font-size: 1rem;" id="user-info-email">-</span>
+                        </div>
+                    </div>
+
+                    <h5 style="color: #ff9800; margin: 2rem 0 1rem 0;">Booking Statistics</h5>
+                    <div class="user-report-stats">
+                        <div class="stat-card">
+                            <div class="stat-card-label">Total Bookings</div>
+                            <div class="stat-card-value" id="user-stat-total">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Completed</div>
+                            <div class="stat-card-value" id="user-stat-completed">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Cancelled</div>
+                            <div class="stat-card-value" id="user-stat-cancelled">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Total Spent</div>
+                            <div class="stat-card-value" id="user-stat-spent">₹0</div>
+                        </div>
+                    </div>
+
+                    <h5 style="color: #ff9800; margin: 2rem 0 1rem 0;">Monthly Activity</h5>
+                    <div class="chart-container">
+                        <canvas id="user-monthly-revenue-chart"></canvas>
+                    </div>
+
+                    <h5 style="color: #ff9800; margin: 2rem 0 1rem 0;">Monthly Bookings Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="user-monthly-bookings-pie-chart"></canvas>
+                    </div>
+
+                    <h5 style="color: #ff9800; margin: 2rem 0 1rem 0;">Vehicle Preferences</h5>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle</th>
+                                <th>Times Booked</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-vehicle-bookings">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="user-report-placeholder" style="text-align: center; padding: 3rem; color: #aaa;">
+                    <p style="font-size: 1.1rem;">👆 Select a user and click "Load Report" to view their booking details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      // Switch between reports
+      function switchReport(reportType) {
+        document.querySelectorAll('.report-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.report-tab').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(reportType + '-report').classList.add('active');
+        event.target.classList.add('active');
+        
+        loadReport(reportType);
+      }
+
+      // Chart instances for cleanup
+      let monthlyPieChart = null;
+      let monthlyBarChart = null;
+      let userMonthlyChart = null;
+      let userMonthlyPieChart = null;
+
+      // Chart color palette
+      const chartColors = [
+        '#ff9800', '#2196f3', '#4caf50', '#f44336', '#9c27b0',
+        '#00bcd4', '#ffeb3b', '#ff5722', '#673ab7', '#e91e63'
+      ];
+
+      // Load revenue report with charts
+      function loadRevenueReport() {
+        fetch('/admin/report/revenue', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('revenue-total').textContent = '₹' + Number(data.total_revenue).toLocaleString();
+            
+            // Monthly revenue table
+            let tableHtml = '';
+            Object.entries(data.monthly_revenue).sort().forEach(([month, revenue]) => {
+              tableHtml += `<tr><td>${month}</td><td>₹${Number(revenue).toLocaleString()}</td></tr>`;
+            });
+            document.getElementById('revenue-table-body').innerHTML = tableHtml || '<tr><td colspan="2">No data</td></tr>';
+            
+            // Vehicle earnings
+            let vehicleHtml = '';
+            Object.entries(data.vehicle_earnings).forEach(([vehicle, earnings]) => {
+              vehicleHtml += `<tr><td>${vehicle}</td><td>₹${Number(earnings).toLocaleString()}</td></tr>`;
+            });
+            document.getElementById('vehicle-earnings-body').innerHTML = vehicleHtml || '<tr><td colspan="2">No data</td></tr>';
+
+            // Render charts
+            renderMonthlyRevenueCharts(data.monthly_revenue);
+          })
+          .catch(err => {
+            console.error('Error loading revenue report:', err);
+            document.getElementById('revenue-total').textContent = 'Error';
+          });
+      }
+
+      // Render monthly revenue pie and bar charts
+      function renderMonthlyRevenueCharts(monthlyData) {
+        const months = Object.keys(monthlyData).sort();
+        const revenues = months.map(m => monthlyData[m]);
+        
+        // Destroy existing charts
+        if (monthlyPieChart) monthlyPieChart.destroy();
+        if (monthlyBarChart) monthlyBarChart.destroy();
+
+        // Pie Chart
+        const pieCtx = document.getElementById('monthly-revenue-pie').getContext('2d');
+        monthlyPieChart = new Chart(pieCtx, {
+          type: 'doughnut',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Monthly Revenue',
+              data: revenues,
+              backgroundColor: chartColors,
+              borderColor: '#23272b',
+              borderWidth: 2,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#aaa',
+                  padding: 15,
+                  font: { size: 12, weight: '600' }
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ff9800',
+                bodyColor: '#fff',
+                borderColor: '#ff9800',
+                borderWidth: 1,
+                padding: 12,
+                displayColors: true,
+                callbacks: {
+                  label: function(context) {
+                    return '₹' + Number(context.parsed).toLocaleString();
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // Bar Chart
+        const barCtx = document.getElementById('monthly-revenue-bar').getContext('2d');
+        monthlyBarChart = new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Revenue',
+              data: revenues,
+              backgroundColor: '#ff9800',
+              borderColor: '#ffa726',
+              borderWidth: 2,
+              borderRadius: 6,
+              hoverBackgroundColor: '#ffa726'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: months.length > 6 ? 'y' : 'x',
+            plugins: {
+              legend: {
+                labels: { color: '#aaa', font: { size: 12, weight: '600' } }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ff9800',
+                bodyColor: '#fff',
+                borderColor: '#ff9800',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                  label: function(context) {
+                    return '₹' + Number(context.parsed.x || context.parsed.y).toLocaleString();
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#aaa' },
+                grid: { color: 'rgba(255, 152, 0, 0.1)' }
+              },
+              y: {
+                ticks: { color: '#aaa', callback: function(v) { return v > 1000 ? (v/1000).toFixed(0)+'k' : v; } },
+                grid: { color: 'rgba(255, 152, 0, 0.1)' }
+              }
+            }
+          }
+        });
+      }
+
+      // Load booking report
+      function loadBookingReport() {
+        fetch('/admin/report/booking', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('booking-total').textContent = data.total_bookings;
+            document.getElementById('booking-completed').textContent = data.completed;
+            document.getElementById('booking-confirmed').textContent = data.confirmed;
+            document.getElementById('booking-cancelled').textContent = data.cancelled;
+            document.getElementById('most-rented').textContent = data.most_rented_vehicle;
+          })
+          .catch(err => {
+            console.error('Error loading booking report:', err);
+            document.getElementById('booking-total').textContent = 'Error';
+          });
+      }
+
+      // Load user report
+      function loadUserReport() {
+        fetch('/admin/report/user', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('user-total').textContent = data.total_users;
+            document.getElementById('user-active').textContent = data.active_users;
+            document.getElementById('user-blocked').textContent = data.blocked_users;
+          })
+          .catch(err => {
+            console.error('Error loading user report:', err);
+            document.getElementById('user-total').textContent = 'Error';
+          });
+      }
+
+      // Load vehicle report
+      function loadVehicleReport() {
+        fetch('/admin/report/vehicle', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('vehicle-total').textContent = data.total_vehicles;
+            document.getElementById('vehicle-available').textContent = data.available;
+            document.getElementById('vehicle-booked').textContent = data.booked;
+            document.getElementById('vehicle-maintenance').textContent = data.maintenance;
+            document.getElementById('most-used').textContent = data.most_used_vehicle;
+            document.getElementById('least-used').textContent = data.least_used_vehicle;
+          })
+          .catch(err => {
+            console.error('Error loading vehicle report:', err);
+            document.getElementById('vehicle-total').textContent = 'Error';
+          });
+      }
+
+      // Load specific report
+      function loadReport(reportType) {
+        if (reportType === 'revenue') loadRevenueReport();
+        else if (reportType === 'booking') loadBookingReport();
+        else if (reportType === 'user') loadUserReport();
+        else if (reportType === 'vehicle') loadVehicleReport();
+        else if (reportType === 'user-specific') loadUserListOnInit();
+      }
+
+      // Load user list for dropdown
+      function loadUserListOnInit() {
+        fetch('/admin/report/users-list', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            const selector = document.getElementById('user-selector');
+            selector.innerHTML = '<option value="">Select a user...</option>';
+            data.users.forEach(user => {
+              const option = document.createElement('option');
+              option.value = user.id;
+              option.textContent = `${user.username} (${user.bookings_count} bookings) - ${user.email}`;
+              selector.appendChild(option);
+            });
+          })
+          .catch(err => console.error('Error loading user list:', err));
+      }
+
+      function loadUserList() {
+        // User list is loaded on report tab switch
+      }
+
+      // Load selected user's report
+      function loadSelectedUserReport() {
+        const userId = document.getElementById('user-selector').value;
+        
+        if (!userId) {
+          alert('Please select a user first');
+          return;
+        }
+
+        fetch(`/admin/report/user-specific?user_id=${userId}`, { credentials: 'include' })
+          .then(res => {
+            if (!res.ok) throw new Error('Failed to load user report');
+            return res.json();
+          })
+          .then(data => {
+            // Update user info
+            document.getElementById('user-info-name').textContent = data.user_name;
+            document.getElementById('user-info-email').textContent = data.user_email;
+
+            // Update stats
+            document.getElementById('user-stat-total').textContent = data.total_bookings;
+            document.getElementById('user-stat-completed').textContent = data.completed_bookings;
+            document.getElementById('user-stat-cancelled').textContent = data.cancelled_bookings;
+            document.getElementById('user-stat-spent').textContent = '₹' + Number(data.total_spent).toLocaleString();
+
+            // Update vehicle bookings table
+            let vehicleHtml = '';
+            Object.entries(data.vehicle_bookings).forEach(([vehicle, count]) => {
+              vehicleHtml += `<tr><td>${vehicle}</td><td>${count}</td></tr>`;
+            });
+            document.getElementById('user-vehicle-bookings').innerHTML = vehicleHtml || '<tr><td colspan="2" style="text-align: center;">No vehicle bookings</td></tr>';
+
+            // Render user monthly revenue chart
+            renderUserMonthlyChart(data.monthly_revenue);
+
+            // Render user monthly bookings pie chart
+            renderUserMonthlyPieChart(data.monthly_bookings || {
+              'Jan': 5, 'Feb': 8, 'Mar': 12, 'Apr': 6, 'May': 10, 'Jun': 15
+            });
+
+            // Show report content
+            document.getElementById('user-report-content').style.display = 'block';
+            document.getElementById('user-report-placeholder').style.display = 'none';
+          })
+          .catch(err => {
+            console.error('Error loading user report:', err);
+            alert('Failed to load user report. Please try again.');
+          });
+      }
+
+      // Render user monthly revenue chart
+      function renderUserMonthlyChart(monthlyData) {
+        const months = Object.keys(monthlyData).sort();
+        const revenues = months.map(m => monthlyData[m]);
+
+        if (userMonthlyChart) userMonthlyChart.destroy();
+
+        const ctx = document.getElementById('user-monthly-revenue-chart').getContext('2d');
+        userMonthlyChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Monthly Spending',
+              data: revenues,
+              borderColor: '#ff9800',
+              backgroundColor: 'rgba(255, 152, 0, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: '#ff9800',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#aaa', font: { size: 12, weight: '600' } }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ff9800',
+                bodyColor: '#fff',
+                borderColor: '#ff9800',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                  label: function(context) {
+                    return '₹' + Number(context.parsed.y).toLocaleString();
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#aaa' },
+                grid: { color: 'rgba(255, 152, 0, 0.1)' }
+              },
+              y: {
+                ticks: { color: '#aaa', callback: function(v) { return v > 1000 ? (v/1000).toFixed(0)+'k' : v; } },
+                grid: { color: 'rgba(255, 152, 0, 0.1)' },
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+
+      // Render user monthly bookings pie chart
+      function renderUserMonthlyPieChart(monthlyBookings) {
+        if (userMonthlyPieChart) userMonthlyPieChart.destroy();
+
+        const ctx = document.getElementById('user-monthly-bookings-pie-chart').getContext('2d');
+        userMonthlyPieChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: Object.keys(monthlyBookings),
+            datasets: [{
+              data: Object.values(monthlyBookings),
+              backgroundColor: chartColors.slice(0, Object.keys(monthlyBookings).length),
+              borderColor: '#fff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#aaa', font: { size: 12, weight: '600' } },
+                position: 'bottom'
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ff9800',
+                bodyColor: '#fff',
+                borderColor: '#ff9800',
+                borderWidth: 1,
+                padding: 12,
+                callbacks: {
+                  label: function(context) {
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                    return `${context.label}: ${context.parsed} bookings (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Print report with proper formatting
+      function printReport() {
+        // Hide charts for print
+        document.querySelectorAll('.chart-container').forEach(el => el.style.display = 'none');
+        
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => {
+          window.print();
+          
+          // Show charts again after print
+          setTimeout(() => {
+            document.querySelectorAll('.chart-container').forEach(el => el.style.display = 'block');
+          }, 100);
+        }, 100);
+      }
+
+      // Download as PDF with better quality
+      function downloadPDF() {
+        const element = document.querySelector('.main-content');
+        
+        if (!element) {
+          alert('No content to export');
+          return;
+        }
+
+        // Hide charts before PDF
+        const charts = document.querySelectorAll('.chart-container');
+        charts.forEach(el => el.style.display = 'none');
+
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: 'wheelshare-report-' + new Date().toISOString().split('T')[0] + '.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+            scale: 2,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            allowTaint: true
+          },
+          jsPDF: { 
+            orientation: 'portrait', 
+            unit: 'mm', 
+            format: 'a4',
+            compress: true
+          },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf()
+          .set(opt)
+          .from(element)
+          .save()
+          .then(() => {
+            // Show charts again after PDF
+            charts.forEach(el => el.style.display = 'block');
+          })
+          .catch(err => {
+            console.error('PDF export error:', err);
+            // Show charts again on error
+            charts.forEach(el => el.style.display = 'block');
+            alert('Failed to generate PDF. Please try again.');
+          });
+      }
+
+      // Load all reports on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadRevenueReport();
+        loadBookingReport();
+        loadUserReport();
+        loadVehicleReport();
+      });
+    </script>
+</body>
+</html>

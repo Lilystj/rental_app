@@ -1,0 +1,1127 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        /* stretch the dashboard to full available width */
+        width: 100%;
+        max-width: none;
+        margin: 0;             /* remove centering margin */
+        padding: 1rem 2rem;    /* give horizontal padding for breathing room */
+        min-height: 100vh;     /* ensure it fills the page vertically */
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(33, 150, 243, 0.05));
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        box-shadow: 0 8px 32px rgba(255, 152, 0, 0.08);
+    }
+    
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 152, 0, 0.1), transparent);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.4rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-header p {
+        color: #bbb;
+        font-size: 1rem;
+        position: relative;
+        z-index: 1;
+        font-weight: 500;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        justify-items: center;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(33, 150, 243, 0.05));
+        border-radius: 18px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 152, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        width: 100%;
+        max-width: 350px;
+        min-height: 80px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 16px 48px rgba(255, 152, 0, 0.25);
+        border-color: rgba(255, 152, 0, 0.5);
+    }
+    
+    .stats-card:hover::before {
+        left: 100%;
+    }
+    
+    .stats-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.05));
+        color: #ff9800;
+        border: 2px solid rgba(255, 152, 0, 0.3);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .stats-card:hover .stats-icon {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.3), rgba(255, 152, 0, 0.1));
+        border-color: rgba(255, 152, 0, 0.6);
+        transform: rotate(10deg) scale(1.1);
+    }
+    .stats-content {
+        flex: 1;
+        text-align: left;
+    }
+    
+    .stats-content h3 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: #fff;
+    }
+    
+    .stats-content p {
+        font-size: 0.9rem;
+        color: #aaa;
+        margin: 0;
+        font-weight: 500;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2.5fr 1fr;
+        gap: 2rem;
+        align-items: start;
+        width: 100%;
+    }
+    
+    .main-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .sidebar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        position: sticky;
+        top: 2rem;
+    }
+    
+    .section-card {
+        background: linear-gradient(135deg, rgba(35, 39, 43, 0.8), rgba(44, 48, 54, 0.6));
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        border: 1px solid rgba(255, 152, 0, 0.15);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .section-card:hover {
+        border-color: rgba(255, 152, 0, 0.3);
+        box-shadow: 0 12px 48px rgba(255, 152, 0, 0.15);
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.02));
+        padding: 1.25rem;
+        border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+    }
+    
+    .section-header h4 {
+        color: #ff9800;
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        justify-content: flex-start;
+        letter-spacing: 0.5px;
+    }
+    .section-content {
+        padding: 1.5rem;
+    }
+    
+    .recent-bookings {
+        max-height: 350px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    
+    .recent-bookings::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .recent-bookings::-webkit-scrollbar-track {
+        background: rgba(255, 152, 0, 0.05);
+        border-radius: 10px;
+    }
+    
+    .recent-bookings::-webkit-scrollbar-thumb {
+        background: rgba(255, 152, 0, 0.3);
+        border-radius: 10px;
+    }
+    
+    .recent-bookings::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 152, 0, 0.5);
+    }
+    
+    .booking-item {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, rgba(26, 29, 32, 0.8), rgba(20, 24, 30, 0.6));
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        justify-content: space-between;
+        min-height: 70px;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .booking-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #ff9800, #ffb74d);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .booking-item:hover {
+        background: linear-gradient(135deg, rgba(35, 39, 43, 0.9), rgba(30, 34, 40, 0.7));
+        border-color: rgba(255, 152, 0, 0.3);
+        transform: translateX(5px);
+    }
+    
+    .booking-item:hover::before {
+        opacity: 1;
+    }
+    
+    .booking-image {
+        width: 70px;
+        height: 50px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #333;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        flex-shrink: 0;
+    }
+    
+    .booking-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .booking-item .booking-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+    }
+    
+    .booking-item .btn-primary {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        border-radius: 8px;
+    }
+    
+    .booking-item .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+    }
+    
+    .booking-info h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0 0 0.4rem 0;
+        color: #fff;
+    }
+    
+    .booking-details {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin: 0.15rem 0;
+        display: flex;
+        gap: 0.8rem;
+    }
+    
+    .booking-status {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-confirmed { 
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    }
+    
+    .status-completed { 
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .status-cancelled { 
+        background: linear-gradient(135deg, #f44336, #ef5350);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    }
+    
+    .featured-vehicles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .vehicle-card {
+        background: linear-gradient(135deg, rgba(26, 29, 32, 0.9), rgba(20, 24, 30, 0.7));
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        border: 1px solid rgba(255, 152, 0, 0.15);
+        position: relative;
+    }
+    
+    .vehicle-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #ff9800, #ffb74d);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+    
+    .vehicle-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 16px 48px rgba(255, 152, 0, 0.25);
+        border-color: rgba(255, 152, 0, 0.4);
+    }
+    
+    .vehicle-card:hover::before {
+        opacity: 1;
+    }
+    
+    .vehicle-image {
+        height: 150px;
+        background: linear-gradient(135deg, #333, #2a2a2a);
+        overflow: hidden;
+        position: relative;
+    }
+    .subscription-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        font-size: 1.5rem;
+        z-index: 5;
+        text-shadow: 0 0 6px rgba(255,215,0,0.8);
+    }
+    
+    .vehicle-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    
+    .vehicle-card:hover .vehicle-image img {
+        transform: scale(1.1);
+    }
+    
+    .vehicle-content {
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100px;
+        text-align: left;
+    }
+    
+    .vehicle-name {
+        color: #ff9800;
+        font-size: 1.15rem;
+        font-weight: 800;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.3px;
+    }
+    
+    .vehicle-specs {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 0.8rem;
+        padding: 0.6rem;
+        background: rgba(255, 152, 0, 0.05);
+        border-radius: 8px;
+    }
+    
+    .vehicle-price {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 800;
+        text-align: center;
+        padding: 0.7rem;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.05));
+        border-radius: 10px;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        letter-spacing: 0.3px;
+    }
+    
+    .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .btn-primary, .btn-outline {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        text-decoration: none;
+        display: inline-block;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        color: #fff;
+        border: none;
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(255, 152, 0, 0.5);
+        text-decoration: none;
+    }
+    
+    .btn-outline {
+        background: transparent;
+        color: #ff9800;
+        border: 2px solid #ff9800;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline:hover {
+        background: #ff9800;
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+    }
+    
+    .btn-logout {
+        background: rgba(244, 67, 54, 0.1);
+        border-color: #f44336;
+        color: #f44336;
+    }
+    
+    .btn-logout:hover {
+        background: #f44336;
+        color: #fff;
+        border-color: #f44336;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        color: #aaa;
+    }
+    
+    .empty-state h3 {
+        color: #ff9800;
+        margin-bottom: 0.8rem;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    
+    .empty-state p {
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 0.75rem;
+        }
+        .dashboard-header {
+            padding: 2rem 1.5rem;
+        }
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        .stats-cards {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        .featured-vehicles {
+            grid-template-columns: 1fr;
+        }
+        .sidebar-section {
+            position: static;
+        }
+        .stats-card {
+            max-width: none;
+            justify-content: flex-start;
+        }
+        .booking-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+        .booking-item .booking-info {
+            width: 100%;
+        }
+        .time-location-display {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+        }
+    }
+</style>
+
+<div id="subscriptionFlag" data-has-sub="{{ '1' if has_subscription else '0' }}" style="display:none;"></div>
+<div class="dashboard-container" data-user-id="{{ session.user_id or 0 }}">
+    <div class="dashboard-header">
+        <h1>Welcome back, {{ user.username }}! 👋</h1>
+        <p>Track your bookings, explore amazing vehicles & enjoy seamless rentals</p>
+        <div class="time-location-display" style="margin-top: 1rem; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; color: #ff9800; flex-wrap: wrap;">
+            <span id="current-location">
+                <i class="fas fa-map-marker-alt" style="margin-right: 4px;"></i>
+                Srivaikuntam, Tamil Nadu
+            </span>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+        <div class="stats-card">
+            <div class="stats-icon">📅</div>
+            <div class="stats-content">
+                <h3 id="total-bookings">0</h3>
+                <p>Total Bookings</p>
+            </div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">🚗</div>
+            <div class="stats-content">
+                <h3 id="available-vehicles">0</h3>
+                <p>Available Vehicles</p>
+            </div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">⭐</div>
+            <div class="stats-content">
+                <h3 id="active-bookings-count">0</h3>
+                <p>Active Bookings</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <div class="main-section">
+            <!-- Active Bookings -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h4>📋 Active Bookings</h4>
+                </div>
+                <div class="section-content">
+                    <div class="recent-bookings" id="active-bookings">
+                        <div class="empty-state">
+                            <h3>No Active Bookings</h3>
+                            <p>Start exploring our amazing fleet and book your next ride!</p>
+                            <a href="/vehicles" class="btn-primary">Browse Vehicles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h4>📚 Recent Activity</h4>
+                </div>
+                <div class="section-content">
+                    <div class="recent-bookings" id="booking-history">
+                        <div class="empty-state">
+                            <h3>No Recent Activity</h3>
+                            <p>Your completed bookings will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Vehicles -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h4>🚗 Available Vehicles</h4>
+                </div>
+                <div class="section-content">
+                    <div class="featured-vehicles" id="featured-vehicles">
+                        <div class="empty-state">
+                            <h3>Loading vehicles...</h3>
+                            <p>Please wait while we load our amazing fleet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <!-- Quick Actions -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h4>⚡ Quick Actions</h4>
+                </div>
+                <div class="section-content">
+                    <div class="quick-actions">
+                        <a href="/vehicles" class="btn-primary">🔍 Browse Vehicles</a>
+                        <a href="/bookings" class="btn-outline">📍 My Bookings</a>
+                        <a href="/subscriptions" class="btn-outline">⭐ Subscriptions</a>
+                        <a href="/payment-history" class="btn-outline">💳 Payments</a>
+                        <a href="/user/penalties" class="btn-outline">⚠️ Penalties</a>
+                        <a href="/feedback" class="btn-outline">💬 Give Feedback</a>
+                        <a href="/logout" class="btn-outline btn-logout">🚪 Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Countdown Timer Styles */
+    .countdown-timer {
+        display: inline-block;
+        margin-top: 0.25rem;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .countdown-timer span {
+        display: inline-block;
+    }
+</style>
+
+<script>
+    // Load dashboard data
+    const userId = parseInt(document.querySelector('.dashboard-container').getAttribute('data-user-id')) || 0;
+    let updateInterval;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardStats();
+        loadActiveBookings();
+        loadRecentActivity();
+        loadAvailableVehicles();
+        
+        // Update dashboard data every 10 seconds for real-time experience
+        updateInterval = setInterval(function() {
+            loadDashboardStats();
+            loadActiveBookings();
+            loadRecentActivity();
+            loadAvailableVehicles();
+        }, 10000);
+    });
+
+    // Add focus listener to refresh when user returns to tab
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            loadDashboardStats();
+            loadActiveBookings();
+            loadAvailableVehicles();
+        }
+    });
+
+    // Animate stat counters
+    function animateCounter(element, target) {
+        const currentValue = parseInt(element.textContent) || 0;
+        if (currentValue === target) return; // Already correct value
+        
+        const duration = 600;
+        const increment = target / (duration / 16);
+        let current = 0;
+        
+        const interval = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(interval);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    }
+
+    // Load dashboard statistics
+    // track which notifications we've already displayed
+    let notificationsShown = { handover: false, completed: false };
+
+    function loadDashboardStats() {
+        // Load vehicle counts
+        fetch('/api/vehicle-counts', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                const availableCountElement = document.getElementById('available-vehicles');
+                
+                if (availableCountElement) {
+                    animateCounter(availableCountElement, data.available_vehicles);
+                }
+            })
+            .catch(err => console.error('Error loading vehicle counts:', err));
+        
+        // Load active bookings count
+        fetch('/api/bookings', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                const bookings = data.bookings || [];
+                // match the active bookings list filter below – Handover is shown separately so don't count it here
+                const activeBookings = bookings.filter(b => ['Paid','Booked','Confirmed'].includes(b.status)).length;
+        // if any handover, notify user (only once per page session)
+        if (!notificationsShown.handover && bookings.some(b => b.status === 'Handover')) {
+            showNotification('Your vehicle is ready for handover! Please collect it.', 'warning');
+            notificationsShown.handover = true;
+        }
+        // if any completed booking, notify user (just once per refresh)
+        if (!notificationsShown.completed && bookings.some(b => b.status === 'Completed')) {
+            showNotification('One of your bookings has been completed. Thank you!', 'success');
+            notificationsShown.completed = true;
+        }
+                const totalBookings = bookings.length;
+                
+                const activeCountElement = document.getElementById('active-bookings-count');
+                const totalCountElement = document.getElementById('total-bookings');
+                
+                if (activeCountElement && totalCountElement) {
+                    animateCounter(activeCountElement, activeBookings);
+                    animateCounter(totalCountElement, totalBookings);
+                }
+            })
+            .catch(err => console.error('Error loading booking stats:', err));
+    }
+
+    // cancel helper (used by dashboard and bookings page)
+    function cancelBooking(bookingId) {
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        fetch(`/cancel/${bookingId}`, { method: 'POST', credentials: 'include' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Booking cancelled', 'success');
+                    loadDashboardStats();
+                    loadActiveBookings();
+                } else {
+                    showNotification('Error: '+(data.error||'could not cancel'), 'danger');
+                }
+            })
+            .catch(err => { console.error('cancel error', err); showNotification('Error cancelling', 'danger'); });
+    }
+
+    // Load active bookings
+    function loadActiveBookings() {
+        fetch('/api/bookings', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                const bookings = data.bookings || [];
+                const activeBookings = bookings.filter(b => ['Paid','Booked','Confirmed'].includes(b.status)).slice(0, 5);
+
+                const container = document.getElementById('active-bookings');
+
+                if (activeBookings.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No Active Bookings</h3>
+                            <p>Start exploring our amazing fleet and book your next ride!</p>
+                            <a href="/vehicles" class="btn-primary">Browse Vehicles</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                activeBookings.forEach(booking => {
+                    // pick colour based on booking status
+                    let statusClass = 'status-confirmed';
+                    switch ((booking.status||'').toLowerCase()) {
+                        case 'pending': statusClass='status-booked'; break;
+                        case 'confirmed': statusClass='status-confirmed'; break;
+                        case 'paid': statusClass='status-available'; break;
+                        case 'completed': statusClass='status-completed'; break;
+                        case 'cancelled': statusClass='status-maintenance'; break;
+                    }
+
+                    // only show pay button if booking has not yet been paid
+                    const showPay = !(booking.status === 'Paid' || booking.status === 'Completed' || booking.status === 'Cancelled');
+                    const showCancel = !(booking.status === 'Completed' || booking.status === 'Cancelled');
+
+                    // Calculate remaining time for countdown
+                    const dueDate = booking.due_date ? new Date(booking.due_date) : null;
+                    const bookingId = booking.id;
+                    const countdownId = `countdown-${bookingId}`;
+                    const showCountdown = dueDate && (['Paid','Booked','Confirmed'].includes(booking.status) || booking.status === 'Completed');
+
+                    html += `
+                        <div class="booking-item">
+                            <div class="booking-image">
+                                <img src="/static/uploads/${booking.image || 'placeholder.png'}" alt="${booking.vehicle}" onerror="this.src='/static/uploads/placeholder.png'">
+                            </div>
+                            <div class="booking-info">
+                                <h5>${booking.vehicle}</h5>
+                                <div class="booking-details">
+                                    <span>📅 ${booking.days} day${booking.days > 1 ? 's' : ''}</span>
+                                    <span>💰 ₹${(booking.total_price || 0).toFixed(2)}</span>
+                                    ${showCountdown ? `<span id="${countdownId}" class="countdown-timer" style="color: #ff9800; font-weight: 700; font-size: 0.9rem;">⏰ Calculating...</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <span class="booking-status ${statusClass}">${booking.status || 'Confirmed'}</span>
+                                ${showPay ? `<a href="/pay/${booking.id}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap;">💳 Pay</a>` : ''}
+                                ${showCancel ? `<button onclick="cancelBooking(${booking.id})" class="btn-primary" style="padding: 0.5rem 1rem; font-size:0.85rem; background:#f44336;">✖</button>` : ''}
+                                ${(booking.penalty_amount && booking.penalty_amount>0 && !booking.penalty_paid) ? `<a href="/pay/penalty/${booking.id}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; background:#d32f2f;">⚠ Pay Penalty</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+                // Start countdown timers for each booking
+                activeBookings.forEach(booking => {
+                    if (booking.due_date && (['Paid','Booked','Confirmed'].includes(booking.status) || booking.status === 'Completed')) {
+                        startCountdownTimer(booking.id, booking.due_date);
+                    }
+                });
+            })
+            .catch(err => {
+                console.error('Error loading active bookings:', err);
+                showNotification('Unable to load active bookings', 'warning');
+                document.getElementById('active-bookings').innerHTML = '';
+            });
+    }
+
+    // Countdown timer function for active bookings
+    function startCountdownTimer(bookingId, dueDateStr) {
+        const countdownElement = document.getElementById(`countdown-${bookingId}`);
+        if (!countdownElement) return;
+
+        const dueDate = new Date(dueDateStr);
+        let intervalId;
+
+        function updateCountdown() {
+            const now = new Date();
+            const timeDiff = dueDate - now;
+
+            if (timeDiff <= 0) {
+                countdownElement.innerHTML = '⏰ <span style="color: #f44336; font-weight: 800;">EXPIRED</span>';
+                countdownElement.style.animation = 'pulse 1s infinite';
+                clearInterval(intervalId);
+                return;
+            }
+
+            // Calculate time components
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            // Format time string
+            let timeString = '';
+            if (days > 0) {
+                timeString = `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            // Set color based on urgency
+            let color = '#4caf50'; // Green for plenty of time
+            if (timeDiff < 1000 * 60 * 60) { // Less than 1 hour
+                color = '#f44336'; // Red
+            } else if (timeDiff < 1000 * 60 * 60 * 24) { // Less than 24 hours
+                color = '#ff9800'; // Orange
+            }
+
+            countdownElement.innerHTML = `⏰ <span style="color: ${color}; font-weight: 800; font-family: 'Courier New', monospace;">${timeString}</span>`;
+
+            // Add subtle animation for urgency
+            if (timeDiff < 1000 * 60 * 60) { // Less than 1 hour
+                countdownElement.style.animation = 'pulse 0.5s infinite';
+            } else {
+                countdownElement.style.animation = 'none';
+            }
+        }
+
+        // Update immediately and then every second
+        updateCountdown();
+        intervalId = setInterval(updateCountdown, 1000);
+
+        // Store interval ID for cleanup if needed
+        countdownElement.dataset.intervalId = intervalId;
+    }
+
+    // subscription flag provided by server via data attribute
+    const hasSubscription = document.getElementById('subscriptionFlag').dataset.hasSub === '1';
+
+    // Load recent activity (completed bookings)
+    function loadRecentActivity() {
+        fetch('/api/bookings', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                const bookings = data.bookings || [];
+                const completedBookings = bookings.filter(b => b.status === 'Completed').slice(0, 5);
+
+                const container = document.getElementById('booking-history');
+
+                if (completedBookings.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No Recent Activity</h3>
+                            <p>Your completed bookings will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                completedBookings.forEach(booking => {
+                    const bookingDate = booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : 'N/A';
+                    
+                    html += `
+                        <div class="booking-item">
+                            <div class="booking-image">
+                                <img src="/static/uploads/${booking.image || 'placeholder.png'}" alt="${booking.vehicle}" onerror="this.src='/static/uploads/placeholder.png'">
+                            </div>
+                            <div class="booking-info">
+                                <h5>${booking.vehicle}</h5>
+                                <div class="booking-details">
+                                    <span>📅 ${bookingDate}</span>
+                                    <span>⏱️ ${booking.days} day${booking.days > 1 ? 's' : ''}</span>
+                                    <span>💰 ₹${(booking.total_price || 0).toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                                ${booking.penalty_amount && booking.penalty_amount>0 ? ('<div style="color:#f44336; font-weight:700;">Penalty: ₹'+Number(booking.penalty_amount).toFixed(2)+'</div>' + (booking.penalty_paid ? '<div style="color:#9e9e9e;">(Paid)</div>' : '<a href="/pay/penalty/'+booking.id+'" class="btn-primary" style="background:#d32f2f;padding:0.4rem 0.8rem;border-radius:8px;color:#fff;text-decoration:none;">⚠ Pay Penalty</a>')) : ''}
+                                <span class="booking-status status-completed">✓ Completed</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                console.error('Error loading recent activity:', err);
+                showNotification('Unable to load recent activity', 'warning');
+                document.getElementById('booking-history').innerHTML = '';
+            });
+    }
+
+    // Load available vehicles
+    function loadAvailableVehicles() {
+        fetch('/api/vehicles/available', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                const vehicles = data.vehicles || [];
+
+                const container = document.getElementById('featured-vehicles');
+
+                if (vehicles.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>No vehicles available</h3><p>Check back later for new additions to our fleet.</p></div>';
+                    return;
+                }
+
+                let html = '';
+                vehicles.forEach(vehicle => {
+                    const link = '/book/' + vehicle.id;
+                    const clickableAttr = vehicle.subscription_only && !hasSubscription
+                        ? "onclick=\"alert('This vehicle is for subscribers only. Please subscribe.')\" style='cursor:not-allowed;'"
+                        : `onclick=\"window.location.href='${link}'\" style='cursor:pointer;'`;
+                    html += `
+                        <div class="vehicle-card" ${clickableAttr}>
+                            <div class="vehicle-image" style="position:relative;">
+                                <img src="/static/uploads/${vehicle.image || 'placeholder.png'}" alt="${vehicle.name || vehicle.brand}" onerror="this.src='/static/uploads/placeholder.png'">
+                                ${vehicle.subscription_only ? '<div class="subscription-badge" style="position:absolute;top:8px;left:8px;font-size:1.5rem;text-shadow:0 0 6px rgba(255,215,0,0.8);">👑</div>' : ''}
+                            </div>
+                            <div class="vehicle-content">
+                                <div class="vehicle-name">${vehicle.name || vehicle.brand}</div>
+                                <div class="vehicle-specs">
+                                    <span>⛽ ${vehicle.fuel_type || 'Petrol'}</span>
+                                    <span>🔧 ${vehicle.transmission || 'Manual'}</span>
+                                    <span>👥 ${vehicle.seating_capacity || '4'} seater</span>
+                                </div>
+                                <div class="vehicle-price">₹${(vehicle.price_per_day || 0).toFixed(2)}/day</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                console.error('Error loading available vehicles:', err);
+                showNotification('Unable to load available vehicles', 'warning');
+                document.getElementById('featured-vehicles').innerHTML = '';
+            });
+    }
+
+    // Time and Location Display
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('current-time').textContent =
+          now.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function setLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            // Reverse geocoding using Nominatim (OpenStreetMap)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`)
+              .then(response => response.json())
+              .then(data => {
+                if (data && data.display_name) {
+                  // Extract city/state/country from the address
+                  const address = data.address || {};
+                  const city = address.city || address.town || address.village || address.county;
+                  const state = address.state;
+                  const country = address.country;
+                  
+                  let locationText = '';
+                  if (city && state) {
+                    locationText = `${city}, ${state}`;
+                  } else if (city) {
+                    locationText = city;
+                  } else if (state) {
+                    locationText = state;
+                  } else {
+                    locationText = data.display_name.split(',')[0]; // Fallback to first part
+                  }
+                  
+                  document.getElementById('current-location').textContent = locationText;
+                } else {
+                  document.getElementById('current-location').textContent = "Location unavailable";
+                }
+              })
+              .catch(error => {
+                console.error('Reverse geocoding error:', error);
+                document.getElementById('current-location').textContent = "Location unavailable";
+              });
+          }, function(error) {
+            console.error('Geolocation error:', error);
+            document.getElementById('current-location').textContent = "Location unavailable";
+          });
+        } else {
+          document.getElementById('current-location').textContent = "Geolocation not supported";
+        }
+      }
+      setLocation();
+</script>
+{% endblock %}

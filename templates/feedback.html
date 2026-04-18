@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .feedback-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .feedback-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .feedback-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 0.5rem;
+    }
+
+    .feedback-header p {
+        color: #bbb;
+        font-size: 1.1rem;
+    }
+
+    .feedback-card {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        color: #ff9800;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        background: #2c3036;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: #ff9800;
+        box-shadow: 0 0 12px rgba(255, 152, 0, 0.4);
+        background: #323843;
+    }
+
+    .form-control::placeholder {
+        color: #999;
+    }
+
+    .rating-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 0.5rem;
+        font-size: 2rem;
+    }
+
+    .star {
+        cursor: pointer;
+        color: #666;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .star:hover,
+    .star.active {
+        color: #ff9800;
+        transform: scale(1.2);
+    }
+
+    .rating-value {
+        color: #ff9800;
+        font-weight: 600;
+        min-width: 50px;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+        font-family: inherit;
+    }
+
+    .form-text {
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .info-box {
+        background: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid #ff9800;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        color: #ddd;
+        font-size: 0.95rem;
+    }
+
+    .info-box strong {
+        color: #ff9800;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: #ff9800;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+        color: #ffa726;
+        text-decoration: underline;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .feedback-container {
+            padding: 1rem;
+        }
+
+        .feedback-card {
+            padding: 1.5rem;
+        }
+
+        .feedback-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .star-rating {
+            font-size: 1.5rem;
+        }
+
+        .btn-submit {
+            padding: 0.85rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .feedback-container {
+            padding: 0.75rem;
+        }
+
+        .feedback-card {
+            padding: 1rem;
+        }
+
+        .feedback-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .form-label {
+            font-size: 0.95rem;
+        }
+
+        .star-rating {
+            font-size: 1.3rem;
+            gap: 0.3rem;
+        }
+    }
+</style>
+
+<div class="feedback-container">
+    <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+
+    <div class="feedback-header">
+        <h1>💬 Share Your Feedback</h1>
+        <p>Help us improve your experience with WheelShare</p>
+    </div>
+
+    <div class="feedback-card">
+        <div class="info-box">
+            <strong>ℹ️ We Value Your Opinion:</strong> Your feedback helps us provide better service. All feedback is reviewed by our team.
+        </div>
+
+        <form method="POST" class="feedback-form">
+            <!-- Rating -->
+            <div class="form-group">
+                <label class="form-label">⭐ How would you rate your experience?</label>
+                <div class="rating-container">
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                    <div class="rating-value">
+                        <span id="ratingValue">5</span>/5
+                    </div>
+                </div>
+                <input type="hidden" id="ratingInput" name="rating" value="5">
+            </div>
+
+            <!-- Vehicle Selection (Optional) -->
+            {% if bookings %}
+            <div class="form-group">
+                <label for="bookingSelect" class="form-label">📍 About which booking? (Optional)</label>
+                <select id="bookingSelect" name="booking_id" class="form-select">
+                    <option value="">-- Select a booking --</option>
+                    {% for booking in bookings %}
+                    <option value="{{ booking.id }}">
+                        {{ booking.vehicle.name if booking.vehicle else 'Unknown Vehicle' }} 
+                        - {{ booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else 'N/A' }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Choose a booking if your feedback relates to a specific rental</div>
+            </div>
+            {% endif %}
+
+            <!-- Feedback Message -->
+            <div class="form-group">
+                <label for="messageInput" class="form-label">✍️ Your Feedback</label>
+                <textarea
+                    id="messageInput"
+                    name="message"
+                    class="form-control"
+                    placeholder="Share your experience... (e.g., vehicle condition, service quality, booking process, etc.)"
+                    required
+                    maxlength="500"
+                ></textarea>
+                <div class="form-text">Maximum 500 characters</div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit">
+                📤 Submit Feedback
+            </button>
+        </form>
+    </div>
+
+    <!-- FAQ Section -->
+    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(255, 152, 0, 0.05); border-radius: 12px; border: 1px solid rgba(255, 152, 0, 0.1);">
+        <h5 style="color: #ff9800; margin-bottom: 1rem;">❓ Frequently Asked Questions</h5>
+        <div style="color: #ccc; font-size: 0.95rem; line-height: 1.8;">
+            <p><strong>Q: How will my feedback be used?</strong><br>
+            A: Your feedback is reviewed by our team and used to improve our services and vehicle quality.</p>
+            
+            <p><strong>Q: Will my feedback be published?</strong><br>
+            A: Only approved feedback will be visible on our platform. Admin review ensures quality and authenticity.</p>
+            
+            <p><strong>Q: Can I edit my feedback after submission?</strong><br>
+            A: Currently, you can submit new feedback. Contact support for changes to existing feedback.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Star rating functionality
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('ratingInput');
+    const ratingValue = document.getElementById('ratingValue');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.dataset.value;
+            ratingInput.value = rating;
+            ratingValue.textContent = rating;
+
+            // Update star appearance
+            stars.forEach(s => {
+                if (s.dataset.value <= rating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        });
+
+        star.addEventListener('mouseover', function() {
+            const rating = this.dataset.value;
+            stars.forEach(s => {
+                if (s.dataset.value <= rating) {
+                    s.style.color = '#ff9800';
+                } else {
+                    s.style.color = '#666';
+                }
+            });
+        });
+    });
+
+    // Reset stars on mouse leave
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        const currentRating = ratingInput.value;
+        stars.forEach(s => {
+            if (s.dataset.value <= currentRating) {
+                s.style.color = '#ff9800';
+            } else {
+                s.style.color = '#666';
+            }
+        });
+    });
+
+    // Initialize active stars
+    const initialRating = ratingInput.value;
+    stars.forEach(s => {
+        if (s.dataset.value <= initialRating) {
+            s.classList.add('active');
+        }
+    });
+</script>
+{% endblock %}

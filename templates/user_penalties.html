@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* page-specific styles moved from original file */
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        color: #fff;
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .page-header p {
+        color: #aaa;
+        font-size: 1.1rem;
+    }
+    .card-dark {
+        background: #23272b;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    .card-dark.summary {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(33, 150, 243, 0.05) 100%);
+        padding: 2rem;
+    }
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+    .summary-item {
+        text-align: center;
+    }
+    .summary-label {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .summary-value {
+        color: #ff9800;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+    .penalty-item {
+        background: #202428;
+        border-left: 4px solid #ff9800;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: slideInUp 0.5s ease-out backwards;
+    }
+    .penalty-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.15);
+    }
+    .penalty-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .penalty-vehicle {
+        font-weight: 600;
+        color: #ff9800;
+        font-size: 1.1rem;
+    }
+    .penalty-booking {
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+    .penalty-amount {
+        background: rgba(255, 152, 0, 0.1);
+        padding: 0.8rem 1.2rem;
+        border-radius: 6px;
+        text-align: center;
+    }
+    .penalty-amount-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ff9800;
+    }
+    .penalty-details {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 1rem 0;
+        border-left: 2px solid #ff9800;
+    }
+    .penalty-details strong {
+        color: #ff9800;
+    }
+    .penalty-status {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .status-unpaid {
+        background: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+    }
+    .status-paid {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+    }
+    .penalty-dates {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 1rem;
+    }
+    .btn-pay {
+        background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+        color: #181c20;
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-pay:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
+    }
+    .btn-pay:disabled {
+        background: #999;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #aaa;
+    }
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .empty-state p {
+        font-size: 1.1rem;
+    }
+    .btn-back {
+        color: #ff9800;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        margin-bottom: 2rem;
+        display: inline-block;
+    }
+    .btn-back:hover {
+        color: #ffa726;
+        transform: translateX(-5px);
+    }
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .penalty-item {
+        animation: slideInUp 0.5s ease-out backwards;
+    }
+    .penalty-item:nth-child(1) { animation-delay: 0.1s; }
+    .penalty-item:nth-child(2) { animation-delay: 0.2s; }
+    .penalty-item:nth-child(3) { animation-delay: 0.3s; }
+</style>
+
+<div class="dashboard-container">
+   
+
+        <div class="page-header">
+            <h1>⚠️ Pending Penalties</h1>
+            <p>Review and pay any outstanding penalties from your bookings</p>
+        </div>
+
+        {% if penalties %}
+            <div class="card-dark summary">
+                <div class="summary-grid" id="summary-stats"></div>
+            </div>
+
+            <div class="card-dark">
+                <div style="padding: 1.5rem;">
+                    <h3 style="color: #ff9800; margin-bottom: 1.5rem;">📋 Your Penalties</h3>
+                    <div id="penalties-list">
+                        {% for penalty in penalties %}
+                            <div class="penalty-item">
+                                <div class="penalty-header">
+                                    <div>
+                                        <div class="penalty-vehicle">{{ penalty['vehicle_name'] }}</div>
+                                        <div class="penalty-booking">Booking ID: #{{ penalty['booking_id'] }}</div>
+                                    </div>
+                                    <div class="penalty-amount">
+                                        <div class="penalty-amount-value">₹{{ '{:,.2f}'.format(penalty['penalty_amount']) }}</div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    {% if penalty['penalty_paid'] %}
+                                        <span class="penalty-status status-paid">✓ PAID</span>
+                                    {% else %}
+                                        <span class="penalty-status status-unpaid">⚠ UNPAID</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="penalty-dates">
+                                    <strong>Booking Dates:</strong> {{ penalty['booking_date'] }} to {{ penalty['due_date'] }}
+                                </div>
+
+                                <div class="penalty-details">
+                                    <strong>Reason:</strong><br>
+                                    {{ penalty['damage_report'] }}
+                                </div>
+
+                                {% if not penalty['penalty_paid'] %}
+                                        <a href="{{ url_for('pay_penalty', booking_id=penalty['booking_id']) }}" class="btn-pay">
+                                        Pay Now (₹{{ '{:,.2f}'.format(penalty['penalty_amount']) }})
+                                    </a>
+                                {% else %}
+                                    <button type="button" class="btn-pay" disabled>✓ Already Paid</button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card-dark">
+                <div class="empty-state">
+                    <div class="empty-state-icon">✨</div>
+                    <p>Great! You have no pending penalties.</p>
+                    <p style="margin-top: 1rem; color: #666;">Keep your rentals in excellent condition to maintain a clean record!</p>
+                </div>
+            </div>
+        {% endif %}
+
+       
+    </div>
+
+    {% if penalties %}
+    <div id="penalties-data" data-penalties='{{ penalties|tojson|safe }}' style="display:none"></div>
+    <script>
+        // Calculate and display summary stats
+        function updateSummaryStats() {
+            // parse penalties data injected safely via data attribute
+            const penalties = JSON.parse(document.getElementById('penalties-data').dataset.penalties || '[]');
+
+            const totalAmount = penalties.reduce((sum, p) => sum + p.penalty_amount, 0);
+            const unpaidAmount = penalties.filter(p => !p.penalty_paid).reduce((sum, p) => sum + p.penalty_amount, 0);
+            const unpaidCount = penalties.filter(p => !p.penalty_paid).length;
+
+            const statsHtml = `
+                <div class="summary-item">
+                    <div class="summary-label">Total Penalties</div>
+                    <div class="summary-value">₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Pending Payment</div>
+                    <div class="summary-value" style="color: #f44336;">₹${unpaidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Unpaid Penalties</div>
+                    <div class="summary-value">${unpaidCount}</div>
+                </div>
+            `;
+
+            const summaryContainer = document.getElementById('summary-stats');
+            if (summaryContainer) {
+                summaryContainer.innerHTML = statsHtml;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', updateSummaryStats);
+    </script>
+    {% endif %}
+{% endblock %}

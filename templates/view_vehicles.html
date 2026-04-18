@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .vehicles-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .vehicles-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: #ff9800;
+    }
+    .vehicles-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .vehicles-header p {
+        color: #aaa;
+        font-size: 1.2rem;
+        margin: 0;
+    }
+    .vehicles-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #23272b 0%, #2c3036 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(255, 152, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    .stats-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0.5rem 0;
+    }
+    .stats-card p {
+        color: #aaa;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    .stats-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .filter-section {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    .filter-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: center;
+    }
+    .filter-label {
+        color: #ff9800;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .filter-input {
+        background: #1a1d20;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+        color: #fff;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .filter-input:focus {
+        outline: none;
+        border-color: #ff9800;
+        box-shadow: 0 0 12px rgba(255, 152, 0, 0.4);
+    }
+    .filter-input::placeholder {
+        color: #666;
+    }
+    .vehicle-card {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .vehicle-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(255, 152, 0, 0.2);
+    }
+    .vehicle-card-image {
+        height: 220px;
+        background: linear-gradient(135deg, #1a1d20 0%, #23272b 100%);
+        overflow: hidden;
+        position: relative;
+    }
+    .vehicle-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    .vehicle-card:hover .vehicle-card-image img {
+        transform: scale(1.05);
+    }
+    .vehicle-status-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 2;
+    }
+    .subscription-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        font-size: 1.5rem;
+        z-index: 3;
+        /* optional subtle glow */
+        text-shadow: 0 0 6px rgba(255,215,0,0.8);
+    }
+    .status-available {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: #fff;
+    }
+    .status-booked {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+    }
+    .status-rented {
+        background: linear-gradient(135deg, #3f51b5, #5c6bc0);
+        color: #fff;
+    }
+    .status-maintenance {
+        background: linear-gradient(135deg, #f44336, #e57373);
+        color: #fff;
+    }
+    .vehicle-card-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .vehicle-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .vehicle-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+    }
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #aaa;
+    }
+    .detail-item strong {
+        color: #fff;
+    }
+    .vehicle-price {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #fff;
+        margin-top: auto;
+        margin-bottom: 1rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 167, 38, 0.1));
+        padding: 0.8rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+    .btn-book {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+    .btn-book:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        color: #181c20;
+        text-decoration: none;
+    }
+    .btn-disabled {
+        background: linear-gradient(135deg, #666, #777) !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    .vehicles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    .loading {
+        text-align: center;
+        color: #aaa;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .loading h3 {
+        color: #ff9800;
+        margin-bottom: 1rem;
+    }
+    .no-vehicles {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #aaa;
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .no-vehicles h3 {
+        color: #ff9800;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+    }
+    .no-vehicles p {
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    .btn-contact {
+        background: linear-gradient(135deg, #2196f3, #42a5f5);
+        color: #fff;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+    .btn-contact:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        color: #fff;
+        text-decoration: none;
+    }
+    @media (max-width: 768px) {
+        .vehicles-header h1 {
+            font-size: 2rem;
+        }
+        .vehicles-stats {
+            grid-template-columns: 1fr;
+        }
+        .filter-controls {
+            grid-template-columns: 1fr;
+        }
+        .vehicle-card-image {
+            height: 180px;
+        }
+        .vehicles-grid {
+            grid-template-columns: 1fr;
+        }
+        .vehicle-details {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div id="subscriptionFlag" data-has-sub="{{ '1' if has_subscription else '0' }}" style="display:none;"></div>
+<div class="vehicles-container">
+    <div class="vehicles-header">
+        <h1>🚗 Premium Fleet</h1>
+        <p>Discover our exceptional collection of vehicles</p>
+    </div>
+
+    <!-- Vehicle Statistics -->
+    <div class="vehicles-stats">
+        <div class="stats-card">
+            <div class="stats-icon">🚗</div>
+            <h3 id="total-vehicles">0</h3>
+            <p>Total Vehicles</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">✅</div>
+            <h3 id="available-vehicles">0</h3>
+            <p>Available Now</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">🚙</div>
+            <h3 id="cars-count">0</h3>
+            <p>Cars</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">🏍️</div>
+            <h3 id="bikes-count">0</h3>
+            <p>Bikes</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <div class="filter-controls">
+            <div>
+                <label class="filter-label">🔍 Search</label>
+                <input type="text" class="filter-input" id="searchInput" placeholder="Search by name, brand, location..." onkeyup="filterVehicles()">
+            </div>
+            <div>
+                <label class="filter-label">📂 Category</label>
+                <select class="filter-input" id="categoryFilter" onchange="filterVehicles()">
+                    <option value="">All Categories</option>
+                    <option value="Car">🚗 Cars</option>
+                    <option value="Bike">🏍️ Bikes</option>
+                </select>
+            </div>
+            <div>
+                <label class="filter-label">📍 Status</label>
+                <select class="filter-input" id="availabilityFilter" onchange="filterVehicles()">
+                    <option value="">All Statuses</option>
+                    <option value="Available">✅ Available</option>
+                    <option value="Booked">⏳ Booked</option>
+                    <option value="Maintenance">🔧 Maintenance</option>
+                </select>
+            </div>
+            <div>
+                <label class="filter-label">🏷️ Brand</label>
+                <select class="filter-input" id="brandFilter" onchange="filterVehicles()">
+                    <option value="">All Brands</option>
+                    <!-- populated dynamically -->
+                </select>
+            </div>
+            <div>
+                <label class="filter-label">📍 Location</label>
+                <select class="filter-input" id="locationFilter" onchange="filterVehicles()">
+                    <option value="">All Locations</option>
+                    <!-- populated dynamically -->
+                </select>
+            </div>
+            <div>
+                <label class="filter-label">⛽ Fuel Type</label>
+                <select class="filter-input" id="fuelFilter" onchange="filterVehicles()">
+                    <option value="">All Fuels</option>
+                    <option value="Petrol">⛽ Petrol</option>
+                    <option value="Diesel">🛢️ Diesel</option>
+                    <option value="Electric">⚡ Electric</option>
+                    <option value="Hybrid">🔋 Hybrid</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Vehicles Grid -->
+    <div class="vehicles-grid" id="vehiclesContainer">
+        <div class="loading">
+            <h3>Loading Amazing Vehicles...</h3>
+            <p>Preparing our premium fleet for you</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allVehicles = [];
+    // subscription flag from server via hidden element
+    const hasSubscription = document.getElementById('subscriptionFlag').dataset.hasSub === '1';
+    document.addEventListener('DOMContentLoaded', function() {
+        // if the server has provided a user_class value we can preset the
+        // price inputs to encourage the correct tier.
+        const userClass = "{{ user_class or '' }}";
+        // price filters removed, nothing to set based on user class any more
+        loadVehicles();
+        
+        // Update vehicle list every 20 seconds for dynamic availability
+        setInterval(loadVehicles, 20000);
+
+        // refresh immediately when tab becomes visible (user may have paid/booked in another tab)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                loadVehicles();
+            }
+        });
+
+        // also refresh when navigating via back/forward cache
+        window.addEventListener('pageshow', function(evt) {
+            if (evt.persisted) {
+                loadVehicles();
+            }
+        });
+    });
+
+    // Fetch and display vehicles
+    function loadVehicles() {
+        // Try public API endpoint first, then fallback to basic rendering
+        fetch('/api/vehicles/available', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                allVehicles = data.vehicles || [];
+                updateStats();
+                populateFilterOptions();
+                displayVehicles(allVehicles);
+            })
+            .catch(err => {
+                console.log('Public API not available, loading from page data');
+                displayVehicles(allVehicles);
+            });
+    }
+
+    function updateStats(list = allVehicles) {
+        document.getElementById('total-vehicles').textContent = list.length;
+        document.getElementById('available-vehicles').textContent =
+            list.filter(v => v.availability_status === 'Available').length;
+        document.getElementById('cars-count').textContent =
+            list.filter(v => v.category === 'Car').length;
+        document.getElementById('bikes-count').textContent =
+            list.filter(v => v.category === 'Bike').length;
+    }
+
+    // populate brand and location dropdowns based on current vehicle list
+    function populateFilterOptions() {
+        const brandSelect = document.getElementById('brandFilter');
+        const locationSelect = document.getElementById('locationFilter');
+
+        const brands = new Set();
+        const locations = new Set();
+        allVehicles.forEach(v => {
+            if (v.brand) brands.add(v.brand);
+            if (v.location) locations.add(v.location);
+        });
+
+        // clear existing dynamic options (leave the default first option)
+        brandSelect.querySelectorAll('option.dynamic').forEach(o => o.remove());
+        locationSelect.querySelectorAll('option.dynamic').forEach(o => o.remove());
+
+        Array.from(brands).sort().forEach(brand => {
+            const opt = document.createElement('option');
+            opt.value = brand;
+            opt.textContent = brand;
+            opt.className = 'dynamic';
+            brandSelect.appendChild(opt);
+        });
+        Array.from(locations).sort().forEach(loc => {
+            const opt = document.createElement('option');
+            opt.value = loc;
+            opt.textContent = loc;
+            opt.className = 'dynamic';
+            locationSelect.appendChild(opt);
+        });
+    }
+
+    // Display vehicles in grid
+    function displayVehicles(vehicles) {
+        const container = document.getElementById('vehiclesContainer');
+
+        if (!vehicles || vehicles.length === 0) {
+            container.innerHTML = `
+                <div class="no-vehicles">
+                    <h3>No Vehicles Found</h3>
+                    <p>We couldn't find any vehicles matching your criteria.</p>
+                    <a href="/contact" class="btn-contact">Contact Us →</a>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        vehicles.forEach(vehicle => {
+            const image = vehicle.image || 'placeholder.png';
+            const name = vehicle.name || vehicle.brand || 'Vehicle';
+            const availability = vehicle.availability_status || 'Available';
+            const statusClass = availability === 'Available' ? 'status-available' :
+                              availability === 'Booked' ? 'status-booked' :
+                              availability === 'Rented' ? 'status-rented' : 'status-maintenance';
+
+            // compute link once and use string concatenation to avoid any
+            // chance of ${...} being treated as literal text
+            const bookLink = '/book/' + vehicle.id;
+            let cardAttrs = '';
+            if (availability === 'Available' && (!vehicle.subscription_only || hasSubscription)) {
+                // make the whole card clickable for better UX
+                cardAttrs = ` onclick="window.location.href='${bookLink}'" style="cursor:pointer;"`;
+            }
+
+            html += `
+                <div class="vehicle-card"${cardAttrs}>
+                    <div class="vehicle-card-image">
+                        <img src="/static/uploads/${image}" alt="${name}" onerror="this.src='/static/uploads/placeholder.png'">
+                        ${vehicle.subscription_only ? '<div class="subscription-badge">👑</div>' : ''}
+                        <div class="vehicle-status-badge ${statusClass}">${availability}</div>
+                    </div>
+                    <div class="vehicle-card-body">
+                        <div class="vehicle-name">
+                            <span>${vehicle.category === 'Car' ? '🚗' : '🏍️'}</span>
+                            ${name}
+                        </div>
+                        <div class="vehicle-details">
+                            <div class="detail-item">
+                                <span>⛽</span>
+                                <span>Fuel: <strong>${vehicle.fuel_type || 'Petrol'}</strong></span>
+                            </div>
+                            <div class="detail-item">
+                                <span>👥</span>
+                                <span>Seats: <strong>${vehicle.seating_capacity || '4'}</strong></span>
+                            </div>
+                            <div class="detail-item">
+                                <span>⚙️</span>
+                                <span>Transmission: <strong>${vehicle.transmission || 'Manual'}</strong></span>
+                            </div>
+                            <div class="detail-item">
+                                <span>🏷️</span>
+                                <span>License: <strong>${vehicle.vehicle_number || 'N/A'}</strong></span>
+                            </div>
+                            <div class="detail-item">
+                                <span>📍</span>
+                                <span>Location: <strong>${vehicle.location || 'Unknown'}</strong></span>
+                            </div>
+                        </div>
+                        <div class="vehicle-price">₹${(vehicle.price_per_day || 0).toFixed(2)}<small>/day</small></div>
+                        ${availability === 'Available' ?
+                            (vehicle.subscription_only && !hasSubscription ?
+                                `<a href="/subscriptions" class="btn-book">Subscribe to Book</a>` :
+                                `<a href="${bookLink}" class="btn-book">Book Now →</a>`
+                            ) :
+                            `<button class="btn-book btn-disabled" disabled>Not Available</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Filter vehicles
+    function filterVehicles() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const availability = document.getElementById('availabilityFilter').value;
+        const fuel = document.getElementById('fuelFilter').value;
+        const brand = document.getElementById('brandFilter').value;
+        const location = document.getElementById('locationFilter').value;
+
+        const filtered = allVehicles.filter(v => {
+            const matchSearch = !search ||
+                (v.name && v.name.toLowerCase().includes(search)) ||
+                (v.brand && v.brand.toLowerCase().includes(search)) ||
+                (v.location && v.location.toLowerCase().includes(search));
+            const matchCategory = !category || v.category === category;
+            const matchAvailability = !availability || v.availability_status === availability;
+            const matchFuel = !fuel || v.fuel_type === fuel;
+            const matchBrand = !brand || (v.brand && v.brand === brand);
+            const matchLocation = !location || (v.location && v.location === location);
+            const matchSubscription = hasSubscription || !v.subscription_only;
+            return matchSearch && matchCategory && matchAvailability && matchFuel && matchBrand && matchLocation && matchSubscription;
+        });
+
+        updateStats(filtered);
+        displayVehicles(filtered);
+
+    }
+</script>
+{% endblock %}

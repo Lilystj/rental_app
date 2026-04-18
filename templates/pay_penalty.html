@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width:700px;margin:2rem auto;padding:2rem;background:#121214;border-radius:12px;border:1px solid #222;color:#fff;">
+  {% if is_receipt %}
+    <!-- Receipt View for Paid Penalty -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h2 style="color: #4caf50; font-size: 2.5rem;">✓</h2>
+      <h3>Penalty Payment Receipt</h3>
+      <p style="color: #aaa;">Booking #{{ booking.id }}</p>
+    </div>
+    
+    <div style="background: #1a1d20; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #4caf50;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <p style="color: #aaa; font-size: 0.9rem; margin: 0;">User</p>
+          <p style="margin: 0.5rem 0 0 0; font-weight: 600;">{{ booking.user.name if booking.user else 'N/A' }}</p>
+        </div>
+        <div>
+          <p style="color: #aaa; font-size: 0.9rem; margin: 0;">Vehicle</p>
+          <p style="margin: 0.5rem 0 0 0; font-weight: 600;">{{ booking.vehicle.brand if booking.vehicle else 'N/A' }}</p>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid #333; padding-top: 1rem; margin-top: 1rem;">
+        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">Penalty Amount</p>
+        <p style="font-size: 1.8rem; font-weight: 700; color: #ff9800; margin: 0.5rem 0 0 0;">₹{{ '%.2f'|format(booking.penalty_amount or 0) }}</p>
+      </div>
+      
+      <div style="border-top: 1px solid #333; padding-top: 1rem; margin-top: 1rem;">
+        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">Status</p>
+        <p style="margin: 0.5rem 0 0 0; font-weight: 600; color: #4caf50;">✓ PAID</p>
+      </div>
+
+      {% if payment %}
+      <div style="border-top: 1px solid #333; padding-top: 1rem; margin-top: 1rem;">
+        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">Payment Details</p>
+        <p style="margin: 0.3rem 0 0 0; font-size: 0.9rem;">
+          <span style="color: #aaa;">Transaction ID:</span> {{ payment.transaction_id }}<br>
+          <span style="color: #aaa;">Date:</span> {{ payment.created_at.strftime('%d %b %Y, %I:%M %p') if payment.created_at else 'N/A' }}<br>
+          <span style="color: #aaa;">Method:</span> {{ payment.payment_method | title }}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/admin/penalties" class="btn btn-primary" style="padding: 0.6rem 1.5rem; text-decoration: none;">Back to Penalties</a>
+    </div>
+
+  {% else %}
+    <!-- Payment Form for Unpaid Penalty -->
+    <h3>Pay Penalty for Booking #{{ booking.id }}</h3>
+    <p>Amount due: <strong style="color:#ff5252;">₹{{ '%.2f'|format(booking.penalty_amount or 0) }}</strong></p>
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Payment Method</label>
+        <select name="payment_method" class="form-control">
+          <option value="card">Card</option>
+          <option value="upi">UPI</option>
+          <option value="wallet">Wallet</option>
+          <option value="penalty" selected>Record Payment</option>
+        </select>
+      </div>
+      <button class="btn btn-primary">Pay Now</button>
+      <a href="/bookings" class="btn btn-secondary">Cancel</a>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

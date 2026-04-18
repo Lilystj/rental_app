@@ -1,0 +1,649 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .bookings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .bookings-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: #ff9800;
+    }
+    .bookings-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .bookings-header p {
+        color: #aaa;
+        font-size: 1.1rem;
+    }
+    .bookings-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #23272b 0%, #2c3036 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(255, 152, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    .stats-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0.5rem 0;
+    }
+    .stats-card p {
+        color: #aaa;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    .stats-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .booking-card {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    .booking-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(255, 152, 0, 0.2);
+    }
+    .booking-header {
+        background: linear-gradient(135deg, #2c3036 0%, #23272b 100%);
+        padding: 1.5rem;
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .booking-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .booking-title h4 {
+        color: #ff9800;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .booking-status {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .status-confirmed {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+    }
+    .status-completed {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: #fff;
+    }
+    .status-cancelled {
+        background: linear-gradient(135deg, #f44336, #e57373);
+        color: #fff;
+    }
+    .booking-content {
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: 200px 1fr auto;
+        gap: 2rem;
+        align-items: center;
+    }
+    .booking-image {
+        width: 200px;
+        height: 150px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #333;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .booking-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .booking-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+    .detail-value {
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .booking-price {
+        text-align: center;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 167, 38, 0.1));
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+    .booking-price .amount {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 0.5rem;
+    }
+    .booking-price .label {
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #aaa;
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .empty-state h3 {
+        color: #ff9800;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+    }
+    .empty-state p {
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    .btn-book-more {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-block;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+    .btn-book-more:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        color: #181c20;
+        text-decoration: none;
+    }
+    .filter-section {
+        background: #23272b;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .filter-controls {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filter-label {
+        color: #ff9800;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+    .filter-select {
+        background: #1a1d20;
+        border: 1px solid #ff9800;
+        color: #fff;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+    .filter-select:focus {
+        outline: none;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
+    }
+    @media (max-width: 768px) {
+        .booking-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        .booking-image {
+            width: 100%;
+            height: 200px;
+        }
+        .bookings-stats {
+            grid-template-columns: 1fr;
+        }
+        .filter-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+    
+    /* Countdown Timer Styles */
+    .countdown-timer {
+        display: inline-block;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .countdown-timer span {
+        display: inline-block;
+    }
+</style>
+
+<div class="bookings-container" data-user-id="{{ user_id or 0 }}">
+    <div class="bookings-header">
+        <h1>📅 My Bookings</h1>
+        <p>View and manage all your vehicle bookings</p>
+    </div>
+
+    <!-- Booking Statistics -->
+    <div class="bookings-stats">
+        <div class="stats-card">
+            <div class="stats-icon">📊</div>
+            <h3 id="total-bookings">0</h3>
+            <p>Total Bookings</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">✅</div>
+            <h3 id="completed-bookings">0</h3>
+            <p>Completed</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">⏳</div>
+            <h3 id="active-bookings">0</h3>
+            <p>Active</p>
+        </div>
+        <div class="stats-card">
+            <div class="stats-icon">💰</div>
+            <h3 id="total-spent">₹0.00</h3>
+            <p>Total Spent</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <div class="filter-controls">
+            <span class="filter-label">Filter by Status:</span>
+            <select class="filter-select" id="status-filter" onchange="filterBookings()">
+                <option value="">All Bookings</option>
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid & Booked</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+            <span class="filter-label">Sort by:</span>
+            <select class="filter-select" id="sort-filter" onchange="filterBookings()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="price-low">Price: Low to High</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="bookingsContainer">
+        <!-- Bookings loaded dynamically -->
+    </div>
+</div>
+
+<!-- embed initial bookings data in a safe HTML attribute so script stays pure JS -->
+<div id="bookingsData" style="display:none;" data-bookings='{{ bookings_json|tojson|safe }}'></div>
+
+<script>
+    // start with server-rendered data so page gracefully degrades if API fails
+    let allBookings = JSON.parse(document.getElementById('bookingsData').dataset.bookings || '[]');
+    // avoid showing the same handover notification multiple times
+    let warnedHandover = false;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load up‑to‑date info from API, but keep fallback data available
+        loadBookings();
+        updateStats();
+        filterBookings();
+        
+        // Then refresh data every 30 seconds
+        setInterval(loadBookings, 30000);
+    });
+
+    function loadBookings() {
+        fetch('/api/bookings', { credentials: 'include' })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.bookings && data.bookings.length > 0) {
+                    allBookings = data.bookings;
+                    // notify user if any booking has moved to Handover (once)
+                    if (!warnedHandover && allBookings.some(b=>b && b.status==='Handover')) {
+                        showNotification('Your vehicle is ready for handover! Please collect it.', 'warning');
+                        warnedHandover = true;
+                    }
+                    updateStats();
+                    filterBookings();
+                }
+            })
+            .catch(err => {
+                console.error('Error loading bookings:', err);
+                // keep whatever data we already have – displayBookings will handle empty case
+                displayBookings(allBookings);
+            });
+    }
+
+    function handover(bookingId) {
+        if (!confirm('Have you handed the vehicle back?')) return;
+        fetch(`/handover/${bookingId}`, {
+            method: 'POST',
+            credentials: 'include'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Handover recorded. Waiting for admin confirmation.', 'success');
+                loadBookings();
+                updateStats();
+            } else {
+                showNotification('Error: ' + (data.error||'Could not record handover'), 'danger');
+            }
+        })
+        .catch(err => {
+            console.error('Handover error', err);
+            showNotification('Error recording handover', 'danger');
+        });
+    }
+
+    function cancelBooking(bookingId) {
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        fetch(`/cancel/${bookingId}`, {
+            method: 'POST',
+            credentials: 'include'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Booking cancelled successfully', 'success');
+                loadBookings();
+                updateStats();
+            } else {
+                showNotification('Error: ' + (data.error||'Could not cancel booking'), 'danger');
+            }
+        })
+        .catch(err => {
+            console.error('Cancel error', err);
+            showNotification('Error cancelling booking', 'danger');
+        });
+    }
+
+    function updateStats() {
+        try {
+            const userBookings = allBookings; // API already filters by current user
+
+            const totalBookingsEl = document.getElementById('total-bookings');
+            const completedBookingsEl = document.getElementById('completed-bookings');
+            const activeBookingsEl = document.getElementById('active-bookings');
+            const totalSpentEl = document.getElementById('total-spent');
+
+            if (totalBookingsEl) totalBookingsEl.textContent = userBookings.length;
+            if (completedBookingsEl) completedBookingsEl.textContent =
+                userBookings.filter(b => b && b.status === 'Completed').length;
+            if (activeBookingsEl) activeBookingsEl.textContent =
+                userBookings.filter(b => b && ['Paid','Booked','Confirmed'].includes(b.status)).length;
+
+            const totalSpent = userBookings.reduce((sum, b) =>
+                sum + (Number(b && b.total_price) || 0), 0);
+            if (totalSpentEl) totalSpentEl.textContent = '₹' + Number(totalSpent).toFixed(2);
+        } catch (err) {
+            console.error('Error updating stats:', err);
+        }
+    }
+
+    function filterBookings() {
+        const statusFilter = document.getElementById('status-filter').value;
+        const sortFilter = document.getElementById('sort-filter').value;
+
+        let filteredBookings = allBookings.slice(); // API already filters by current user
+
+        // Apply status filter
+        if (statusFilter) {
+            filteredBookings = filteredBookings.filter(b => b && b.status === statusFilter);
+        }
+
+        // Apply sorting
+        filteredBookings.sort((a, b) => {
+            if (!a || !b) return 0;
+            
+            switch (sortFilter) {
+                case 'oldest':
+                    return new Date(a.booking_date || 0) - new Date(b.booking_date || 0);
+                case 'price-high':
+                    return (Number(b.total_price) || 0) - (Number(a.total_price) || 0);
+                case 'price-low':
+                    return (Number(a.total_price) || 0) - (Number(b.total_price) || 0);
+                default: // newest
+                    return new Date(b.booking_date || 0) - new Date(a.booking_date || 0);
+            }
+        });
+
+        displayBookings(filteredBookings);
+    }
+
+    function displayBookings(bookings) {
+        try {
+            const container = document.getElementById('bookingsContainer');
+            if (!container) return;
+
+            if (!bookings || bookings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Bookings Found</h3>
+                        <p>You haven't made any bookings yet. Start exploring our amazing fleet!</p>
+                        <a href="/vehicles" class="btn-book-more">Browse Vehicles →</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            bookings.forEach(booking => {
+                if (!booking) return;
+
+                // Get status badge class
+                let statusClass = 'status-confirmed';
+                let statusLabel = booking.status || 'Pending';
+                
+                if (booking.status === 'Paid' || booking.status === 'Booked') {
+                    statusClass = 'status-confirmed';
+                    statusLabel = '✓ Paid & Booked';
+                } else if (booking.status === 'Confirmed') {
+                    statusClass = 'status-confirmed';
+                    statusLabel = '✔️ Confirmed – Awaiting Payment';
+                } else if (booking.status === 'Completed') {
+                    statusClass = 'status-completed';
+                    statusLabel = '✓✓ Completed';
+                } else if (booking.status === 'Cancelled') {
+                    statusClass = 'status-cancelled';
+                    statusLabel = '✗ Cancelled';
+                } else if (booking.status === 'Pending') {
+                    statusClass = 'status-confirmed';
+                    statusLabel = '⏳ Pending Payment';
+                }
+
+                const bookingDate = booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : 'N/A';
+                const vehicleName = booking.vehicle || 'Unknown Vehicle';
+                const days = Number(booking.days) || 1;
+                const totalPrice = Number(booking.total_price) || 0;
+
+                // Calculate remaining time for countdown (only for active bookings)
+                const dueDate = booking.due_date ? new Date(booking.due_date) : null;
+                const bookingId = booking.id;
+                const countdownId = `countdown-${bookingId}`;
+                const isActiveBooking = ['Paid','Booked','Confirmed'].includes(booking.status);
+                const showCountdown = dueDate && (isActiveBooking || booking.status === 'Completed');
+
+                html += `
+                    <div class="booking-card">
+                        <div class="booking-header">
+                            <div class="booking-title">
+                                <span style="font-size: 1.5rem;">🚗</span>
+                                <h4>Booking #${booking.id || 'N/A'}</h4>
+                            </div>
+                            <span class="booking-status ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <div class="booking-content">
+                            <div class="booking-image">
+                                <img src="/static/uploads/${booking.image || 'placeholder.png'}" alt="${vehicleName}" onerror="this.src='/static/uploads/placeholder.png'">
+                            </div>
+                            <div class="booking-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Vehicle:</span>
+                                    <span class="detail-value">${vehicleName}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Duration:</span>
+                                    <span class="detail-value">${days} day${days > 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Booking Date:</span>
+                                    <span class="detail-value">${bookingDate}</span>
+                                </div>
+                                ${showCountdown ? `<div class="detail-row"><span class="detail-label">⏰ Time Remaining:</span><span id="${countdownId}" class="countdown-timer detail-value" style="color: #ff9800; font-weight: 700; font-family: 'Courier New', monospace;">Calculating...</span></div>` : ''}
+                                <div class="detail-row">
+                                    <span class="detail-label">🆔 ID Proof:</span>
+                                    <span class="detail-value">${booking.proof_type || 'License'}</span>
+                                </div>
+                                ${booking.licence_proof ? '<div class="detail-row"><span class="detail-label">📄 Document:</span><a href="/static/uploads/' + booking.licence_proof + '" target="_blank" class="detail-value" style="color: #ff9800; text-decoration: none;">View Document</a></div>' : ''}
+                            </div>
+                            <div class="booking-price">
+                                <div class="amount">₹${totalPrice.toFixed(2)}</div>
+                                <div class="label">Total Cost</div>
+                                ${['Pending','Confirmed'].includes(booking.status) ? '<a href="/pay/' + booking.id + '" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #ff9800, #ffa726); color: #fff; padding: 0.7rem 1.5rem; border-radius: 20px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;" >💳 Pay Now</a>' : ''}
+                                ${booking.status === 'Paid' && !booking.handover_time ? '<button onclick="handover('+booking.id+')" style="margin-top:1rem; background:#007bff;color:#fff;padding:0.5rem 1rem;border:none;border-radius:8px;">🚗 Handover</button>' : ''}
+                                ${(['Pending','Confirmed','Paid','Booked'].includes(booking.status) ? '<button onclick="cancelBooking('+booking.id+')" style="margin-top:1rem; margin-left:0.5rem; background:#f44336;color:#fff;padding:0.5rem 1rem;border:none;border-radius:8px;">✖ Cancel</button>' : '')}
+                                ${booking.penalty_amount && booking.penalty_amount>0 ? ('<div style="color:#f44336;margin-top:0.5rem;">Penalty: ₹'+booking.penalty_amount.toFixed(2)+'</div>' + (booking.penalty_paid ? '<div style="color:#9e9e9e;">(Paid)</div>' : '<a href="/pay/penalty/'+booking.id+'" style="display:inline-block;margin-top:0.5rem;background:#d32f2f;color:#fff;padding:0.5rem 1rem;border-radius:8px;text-decoration:none;">⚠ Pay Penalty</a>')) : ''}
+                                ${booking.damage_report ? '<div style="color:#ffa726;margin-top:0.5rem;">Notes: '+booking.damage_report+'</div>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Start countdown timers for active bookings
+            bookings.forEach(booking => {
+                if (booking && booking.due_date && (['Paid','Booked','Confirmed'].includes(booking.status) || booking.status === 'Completed')) {
+                    startCountdownTimer(booking.id, booking.due_date);
+                }
+            });
+        } catch (err) {
+            console.error('Error displaying bookings:', err);
+            // avoid showing a big red block; just notify and keep existing content
+            showNotification('Unable to render bookings. Please refresh the page.', 'warning');
+            const container = document.getElementById('bookingsContainer');
+            if (container) {
+                container.innerHTML = ''; // clear so layout stays clean
+            }
+        }
+    }
+
+    // Countdown timer function for active bookings
+    function startCountdownTimer(bookingId, dueDateStr) {
+        const countdownElement = document.getElementById(`countdown-${bookingId}`);
+        if (!countdownElement) return;
+
+        const dueDate = new Date(dueDateStr);
+        let intervalId;
+
+        function updateCountdown() {
+            const now = new Date();
+            const timeDiff = dueDate - now;
+
+            if (timeDiff <= 0) {
+                countdownElement.innerHTML = '<span style="color: #f44336; font-weight: 800;">EXPIRED</span>';
+                countdownElement.style.animation = 'pulse 1s infinite';
+                clearInterval(intervalId);
+                return;
+            }
+
+            // Calculate time components
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            // Format time string
+            let timeString = '';
+            if (days > 0) {
+                timeString = `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            // Set color based on urgency
+            let color = '#4caf50'; // Green for plenty of time
+            if (timeDiff < 1000 * 60 * 60) { // Less than 1 hour
+                color = '#f44336'; // Red
+            } else if (timeDiff < 1000 * 60 * 60 * 24) { // Less than 24 hours
+                color = '#ff9800'; // Orange
+            }
+
+            countdownElement.innerHTML = `<span style="color: ${color}; font-weight: 800; font-family: 'Courier New', monospace;">${timeString}</span>`;
+
+            // Add subtle animation for urgency
+            if (timeDiff < 1000 * 60 * 60) { // Less than 1 hour
+                countdownElement.style.animation = 'pulse 0.5s infinite';
+            } else {
+                countdownElement.style.animation = 'none';
+            }
+        }
+
+        // Update immediately and then every second
+        updateCountdown();
+        intervalId = setInterval(updateCountdown, 1000);
+
+        // Store interval ID for cleanup if needed
+        countdownElement.dataset.intervalId = intervalId;
+    }
+</script>
+{% endblock %}

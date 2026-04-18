@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - WheelShare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Static dark background for admin panel */
+        body {
+            background: #0f1115;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .nav-link {
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active {
+        background: #ff9800 !important;
+        color: #181c20 !important;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .sidebar .nav-section {
+        margin-top: 2rem;
+        font-size: 0.9rem;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem 2rem 2.5rem;
+        background: #181a1f;
+        min-height: 100vh;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .admin-topbar .profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .admin-topbar .time-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        font-size: 0.85rem;
+        color: #ff9800;
+        line-height: 1.2;
+      }
+      .admin-topbar .profile-img {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ff9800;
+      }
+      .stats-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+      .stats-card {
+        min-width: 140px;
+      }
+      .table-responsive table th, .table-responsive table td {
+        padding: 0.6rem 0.8rem;
+        vertical-align: middle;
+        font-size: 0.9rem;
+      }
+      .table-responsive table thead th {
+        font-weight: 600;
+      }
+      .stats-card {
+        background: #23272b;
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        flex: 1;
+        box-shadow: 0 0 12px #ff980040;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .stats-card .label { color: #aaa; font-size: 1rem; }
+      .stats-card .value { font-size: 2rem; font-weight: 700; color: #ff9800; }
+      .stats-card .desc { color: #aaa; font-size: 0.9rem; }
+      .dashboard-row {
+        display: flex;
+        gap: 2rem;
+      }
+      .dashboard-main {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .dashboard-side {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 0 12px #ff980040;
+        padding: 1.5rem;
+      }
+      .vehicle-overview-card {
+        background: #23272b;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+      }
+      .vehicle-overview-img {
+        width: 70px; height: 48px;
+        object-fit: cover;
+        border-radius: 6px;
+        box-shadow: 0 0 6px #ff980060;
+      }
+      .feedback-card {
+        background: #23272b;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      .revenue-chart {
+        width: 100%; height: 250px;
+        background: #20242a;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: #aaa;
+        font-size: 1.1rem;
+        position: relative;
+      }
+      /* Car Animation Styles for Notifications */
+      .car-notification {
+        position: fixed;
+        top: 20px;
+        right: -400px; /* Start off-screen */
+        z-index: 9999;
+        width: 350px;
+        height: 80px;
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        font-weight: 600;
+        color: #181c20;
+        border: 3px solid #fff;
+        animation: driveIn 0.8s ease-out forwards, bounce 0.3s ease-in-out 0.8s;
+        overflow: hidden;
+      }
+
+      .car-notification.success {
+        background: linear-gradient(135deg, #4caf50, #81c784);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+      }
+
+      .car-notification.danger {
+        background: linear-gradient(135deg, #f44336, #ef5350);
+        box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+      }
+
+      .car-notification.warning {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+      }
+
+      .car-notification.info {
+        background: linear-gradient(135deg, #2196f3, #64b5f6);
+        box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+      }
+
+      .car-body {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .car-icon {
+        font-size: 2rem;
+        animation: carShake 0.5s ease-in-out infinite alternate;
+      }
+
+      .car-message {
+        flex: 1;
+        font-size: 0.9rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .car-wheels {
+        position: relative;
+        width: 30px;
+        height: 30px;
+      }
+
+      .wheel {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #333;
+        border-radius: 50%;
+        border: 2px solid #666;
+        bottom: 0;
+      }
+
+      .wheel.left {
+        left: 0;
+        animation: spinWheel 2s linear infinite;
+      }
+
+      .wheel.right {
+        right: 0;
+        animation: spinWheel 2s linear infinite reverse;
+      }
+
+      .car-notification.driving-out {
+        animation: driveOut 0.8s ease-in forwards;
+      }
+
+      @keyframes driveIn {
+        0% {
+          right: -400px;
+          transform: rotate(-5deg);
+        }
+        50% {
+          transform: rotate(2deg);
+        }
+        100% {
+          right: 20px;
+          transform: rotate(0deg);
+        }
+      }
+
+      @keyframes driveOut {
+        0% {
+          right: 20px;
+          transform: rotate(0deg);
+        }
+        50% {
+          transform: rotate(-3deg);
+        }
+        100% {
+          right: -400px;
+          transform: rotate(5deg);
+        }
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+
+      @keyframes spinWheel {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes carShake {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(2px); }
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 250px;
+      }
+  @media (max-width: 1100px) {
+    .dashboard-row { flex-direction: column; }
+    .main-content { margin-left: 0; padding: 1rem; }
+    .sidebar { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid #23272b; padding: 1rem; }
+    .admin-topbar { flex-direction: column; gap: 1rem; align-items: flex-start; }
+    .admin-topbar .profile { flex-wrap: wrap; gap: 0.5rem; justify-content: flex-start; }
+    .admin-topbar .time-info { align-items: flex-start; font-size: 0.8rem; }
+  }
+  @media (max-width: 768px) {
+    .sidebar { flex-wrap: wrap; justify-content: center; }
+    .sidebar .nav-link { flex: 1; min-width: 120px; text-align: center; }
+    .admin-topbar .title { font-size: 1.5rem; }
+    .stats-cards { flex-direction: column; align-items: center; }
+    .admin-topbar .time-info { flex-direction: row; gap: 1rem; align-items: center; }
+  }
+</style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link active" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link" href="/admin/subscriptions">Manage Plans</a>
+        <a class="nav-link" href="/admin/subscriptions/users">User Subscriptions</a>
+        <a class="nav-link" href="/admin/penalties">Penalty Management</a>
+        <a class="nav-link" href="/admin/bookings">Bookings</a>
+    </div>
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">Admin Dashboard</div>
+            <div class="profile">
+                <div class="time-info">
+                    <span id="current-time"></span>
+                    <span id="current-location"><i class="fas fa-map-marker-alt" style="margin-right:4px;"></i></span>
+                </div>
+                <span>Hi, Admin</span>
+                <img src="{{ url_for('static', filename='uploads/team1.jpg') }}" class="profile-img" alt="Profile">
+                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+        <div class="stats-cards" style="margin-bottom:2.5rem;">
+          <div class="stats-card">
+            <div class="label">Total Bookings</div>
+            <div class="value" id="total-bookings">...</div>
+            
+          </div>
+          <div class="stats-card">
+            <div class="label">Total Revenue</div>
+            <div class="value" id="total-revenue">...</div>
+          
+          </div>
+          <div class="stats-card">
+            <div class="label">Active Users</div>
+            <div class="value" id="active-users">...</div>
+            
+          </div>
+        </div>
+        <div class="dashboard-row">
+            <div class="dashboard-main">
+                <div class="card-dark">
+                    <div class="fw-bold mb-3">Recent Booking Requests</div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Renter</th>
+                                    <th>Vehicle</th>
+                                    <th>Proof</th>
+                                    <th>Status</th>
+                                    <th>Damage / Penalty</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookings-tbody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-dark">
+                    <div class="fw-bold mb-3">Monthly Revenue Report</div>
+                    <div class="chart-container">
+                      <canvas id="revenue-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-side">
+                <div class="card-dark">
+                    <div class="fw-bold mb-3">Vehicle Overview</div>
+                    {% for v in vehicles[:2] %}
+                    <div class="vehicle-overview-card">
+                        <img src="{{ url_for('static', filename='uploads/' ~ (v.image or 'placeholder.png')) }}" class="vehicle-overview-img" alt="vehicle">
+                        <div>
+                            <div class="fw-bold">{{ v.brand if v.brand else 'Vehicle' }}</div>
+                            <div class="text-muted small">₹{{ '%.2f'|format(v.price_per_day if v.price_per_day else 0) }}/day</div>
+                        </div>
+                        <span class="badge bg-success">Available</span>
+                    </div>
+                    {% else %}
+                    <div class="vehicle-overview-card">
+                        <img src="{{ url_for('static', filename='uploads/placeholder.png') }}" class="vehicle-overview-img" alt="vehicle">
+                        <div>
+                            <div class="fw-bold">No vehicles</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-dark">
+                    <div class="fw-bold mb-3">User Feedback</div>
+                    <div class="feedback-card mb-2">
+                        <div class="small">"Great service and clean vehicles!"</div>
+                        <div class="text-muted small">- User1</div>
+                    </div>
+                    <div class="feedback-card">
+                        <div class="small">"Booking process was smooth and easy."</div>
+                        <div class="text-muted small">- User2</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding penalty to completed booking -->
+    <div class="modal fade" id="addPenaltyModal" tabindex="-1" aria-labelledby="addPenaltyLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addPenaltyLabel">Add Penalty for Completed Booking</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="addPenaltyForm">
+            <div class="modal-body">
+              <input type="hidden" id="add-penalty-booking-id">
+              <div class="mb-3">
+                <label for="add-penalty-user-name" class="form-label">Renter</label>
+                <input type="text" class="form-control" id="add-penalty-user-name" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="add-penalty-vehicle-name" class="form-label">Vehicle</label>
+                <input type="text" class="form-control" id="add-penalty-vehicle-name" disabled>
+              </div>
+              <div class="mb-3">
+                <label for="add-penalty-amount" class="form-label">Penalty Amount (₹)</label>
+                <input type="number" class="form-control" id="add-penalty-amount" min="0" step="0.01" required>
+              </div>
+              <div class="mb-3">
+                <label for="add-penalty-report" class="form-label">Damage Report / Reason</label>
+                <textarea class="form-control" id="add-penalty-report" rows="3" placeholder="Describe the damage or reason for penalty..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Penalty</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for recording vehicle condition and penalty -->
+    <div class="modal fade" id="handoverModal" tabindex="-1" aria-labelledby="handoverModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form id="handoverForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="handoverModalLabel">Vehicle Condition &amp; Penalty</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Check for any issues:</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="damage" value="Scratches" id="damageScratch">
+                  <label class="form-check-label" for="damageScratch">Scratches</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="damage" value="Dents" id="damageDent">
+                  <label class="form-check-label" for="damageDent">Dents</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="damage" value="Broken Mirrors" id="damageMirror">
+                  <label class="form-check-label" for="damageMirror">Broken mirrors</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="damage" value="Flat Tire" id="damageTire">
+                  <label class="form-check-label" for="damageTire">Flat tire</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="damage" value="Engine Issue" id="damageEngine">
+                  <label class="form-check-label" for="damageEngine">Engine problem</label>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="damageReport" class="form-label">Additional notes</label>
+                <textarea id="damageReport" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="mb-3" id="penaltyGroup">
+                <label for="penaltyAmount" class="form-label">Penalty amount (₹)</label>
+                <input type="number" class="form-control" id="penaltyAmount" min="0" step="0.01">
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="noPenaltyCheckbox">
+                <label class="form-check-label" for="noPenaltyCheckbox">No penalty (vehicle returned OK)</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Show notification toast/alert with car animation
+      function showNotification(message, type = 'info') {
+        const carHTML = `
+          <div class="car-notification ${type}" id="car-notification">
+            <div class="car-body">
+              <div class="car-icon">🚗</div>
+              <div class="car-message">${message}</div>
+            </div>
+            <div class="car-wheels">
+              <div class="wheel left"></div>
+              <div class="wheel right"></div>
+            </div>
+          </div>
+        `;
+
+        // Remove any existing car notification
+        const existingCar = document.getElementById('car-notification');
+        if (existingCar) {
+          existingCar.remove();
+        }
+
+        const container = document.createElement('div');
+        container.innerHTML = carHTML;
+        document.body.appendChild(container.firstElementChild);
+
+        // Auto-remove after 4 seconds with driving out animation
+        setTimeout(() => {
+          const car = document.getElementById('car-notification');
+          if (car) {
+            car.classList.add('driving-out');
+            setTimeout(() => {
+              if (car.parentNode) car.remove();
+            }, 800); // Wait for driveOut animation to complete
+          }
+        }, 4000);
+      }
+
+      // Format revenue as currency
+      function formatCurrency(num) {
+        return '₹' + Number(num).toLocaleString();
+      }
+
+      // Load stats
+      function loadStats() {
+        fetch('/admin/stats', { credentials: 'include' })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            document.getElementById('total-bookings').textContent = data.total_bookings;
+            document.getElementById('total-revenue').textContent = formatCurrency(data.total_revenue);
+            document.getElementById('active-users').textContent = data.total_users;
+          })
+          .catch(err => {
+            console.error('Error fetching stats:', err);
+            document.getElementById('total-bookings').textContent = 'N/A';
+            document.getElementById('total-revenue').textContent = 'N/A';
+            document.getElementById('active-users').textContent = 'N/A';
+          });
+      }
+
+      // Load booking requests
+      function loadBookings() {
+        fetch('/api/admin/bookings-list', { credentials: 'include' })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            const tbody = document.getElementById('bookings-tbody');
+            tbody.innerHTML = '';
+            
+            if (data.bookings.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No bookings yet</td></tr>';
+              return;
+            }
+            
+            data.bookings.forEach((b, idx) => {
+              // support both 'renter' (old) and 'user' keys
+              const renterName = b.renter || b.user || 'Unknown';
+
+              let statusBadge = '';
+              let approveButton = '';
+              
+              if (b.status === 'Pending') {
+                statusBadge = '<span class="badge bg-warning">⏳ Pending</span>';
+                approveButton = `<button class="btn btn-primary btn-sm" onclick="approveBooking(${b.id}, this)">Approve</button>`;
+              } else if (b.status === 'Confirmed') {
+                statusBadge = '<span class="badge bg-primary">✔️ Confirmed</span>';
+                approveButton = '<button class="btn btn-secondary btn-sm" disabled>Verified</button>';
+              } else if (b.status === 'Paid' || b.status === 'Booked') {
+                statusBadge = '<span class="badge bg-success">✓ Paid & Booked</span>';
+                approveButton = '<button class="btn btn-success btn-sm" disabled>Approved</button>';
+                // allow admin to start physical handover
+                approveButton += ` <button class="btn btn-warning btn-sm" onclick="startHandover(${b.id})">Hand Over</button>`;
+                // provide no-penalty shortcut
+                approveButton += ` <button class="btn btn-success btn-sm" onclick="markNoPenalty(${b.id}, this)">No Penalty</button>`;
+              } else if (b.status === 'Handover') {
+                statusBadge = '<span class="badge bg-warning">🚗 Handed Over</span>';
+                approveButton = `<button class="btn btn-danger btn-sm" onclick="openHandoverPenaltyModal(${b.id}, '${renterName}', '${b.vehicle}')">Penalty</button>`;
+                approveButton += ` <button class="btn btn-success btn-sm" onclick="markNoPenalty(${b.id}, this)">No Penalty</button>`;
+              } else if (b.status === 'Completed') {
+                statusBadge = '<span class="badge bg-info">✓✓ Completed</span>';
+                if (b.penalty_amount && b.penalty_amount > 0) {
+                    approveButton = `
+                        <button class="btn btn-warning btn-sm" onclick="openAddPenaltyModal(${b.id}, '${renterName}', '${b.vehicle}', ${b.penalty_amount})">Add Penalty</button>
+                        <button class="btn btn-success btn-sm" onclick="markNoPenalty(${b.id}, this)">No Penalty</button>
+                    `;
+                } else {
+                    // already no penalty
+                    approveButton = '<span class="text-muted small">No Penalty</span>';
+                }
+              } else {
+                statusBadge = `<span class="badge bg-danger">${b.status}</span>`;
+                approveButton = '<span class="text-muted small">-</span>';
+              }
+              
+              const proofCell = b.proof_file ? 
+                `<a href="/static/uploads/${b.proof_file}" target="_blank" class="btn btn-info btn-sm">📄 View</a>` :
+                '<span class="text-muted small">No proof</span>';
+              
+              const row = `
+                <tr>
+                  <td>${b.id}</td>
+                  <td>${renterName}</td>
+                  <td>${b.vehicle}</td>
+                  <td>${proofCell}</td>
+                  <td>${statusBadge}</td>
+                  <td>${b.damage_report ? b.damage_report + '<br>' : ''}${b.penalty_amount ? '₹' + Number(b.penalty_amount).toFixed(2) : ''}</td>
+                  <td>${approveButton}</td>
+                </tr>
+              `;
+              tbody.innerHTML += row;
+            });
+          })
+          .catch(err => {
+            console.error('Error fetching bookings:', err);
+            showNotification('Error loading bookings list', 'danger');
+            const tbody = document.getElementById('bookings-tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">—</td></tr>';
+          });
+      }
+
+      // Load and render revenue chart
+      function loadRevenueChart() {
+        fetch('/admin/revenue-data', { credentials: 'include' })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            const chartContainer = document.getElementById('revenue-chart');
+            if (!chartContainer) return;
+            
+            // Destroy existing chart if it exists
+            const chartCanvas = chartContainer.parentElement;
+            if (window.revenueChartInstance) {
+              window.revenueChartInstance.destroy();
+            }
+            
+            const ctx = chartContainer.getContext('2d');
+            window.revenueChartInstance = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: 'Revenue (₹)',
+                  data: data.data,
+                  borderColor: '#ff9800',
+                  backgroundColor: '#ff980020',
+                  borderWidth: 3,
+                  tension: 0.4,
+                  fill: true,
+                  pointRadius: 5,
+                  pointBackgroundColor: '#ff9800',
+                  pointBorderColor: '#fff',
+                  pointBorderWidth: 2
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    labels: { color: '#fff', font: { size: 12 } }
+                  }
+                },
+                scales: {
+                  y: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#23272b' }
+                  },
+                  x: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#23272b' }
+                  }
+                }
+              }
+            });
+          })
+          .catch(err => console.error('Error loading chart:', err));
+      }
+
+      // Mark booking as having no penalty
+      function markNoPenalty(bookingId, buttonElement) {
+        buttonElement.disabled = true;
+        const orig = buttonElement.textContent;
+        if (!confirm('Confirm that this booking has no penalties?')) {
+          buttonElement.disabled = false;
+          buttonElement.textContent = orig;
+          return;
+        }
+        fetch('/api/admin/update-penalty', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ booking_id: bookingId, penalty_amount: 0, damage_report: '' })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showNotification('No penalty recorded.', 'success');
+            loadBookings();
+          } else {
+            showNotification('Error setting no penalty: '+(data.error||'unknown'), 'danger');
+            buttonElement.disabled = false;
+            buttonElement.textContent = orig;
+          }
+        })
+        .catch(err => {
+          console.error('Error marking no penalty', err);
+          showNotification('Error marking no penalty', 'danger');
+          buttonElement.disabled = false;
+          buttonElement.textContent = orig;
+        });
+      }
+      
+      // Approve booking
+      function approveBooking(bookingId, buttonElement) {
+        // Disable button immediately to prevent double-click
+        buttonElement.disabled = true;
+        const originalText = buttonElement.textContent;
+        buttonElement.textContent = 'Processing...';
+        
+        if (!confirm('Are you sure you want to approve this booking?')) {
+          // User cancelled, re-enable button
+          buttonElement.disabled = false;
+          buttonElement.textContent = originalText;
+          return;
+        }
+        
+        fetch(`/admin/booking/${bookingId}/approve`, { method: 'POST', credentials: 'include' })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            if (data.success) {
+              showNotification('Booking approved successfully!', 'success');
+              loadBookings(); // Refresh the bookings list
+              loadStats(); // Refresh the stats
+            } else {
+              showNotification('Error approving booking: ' + (data.message || 'Unknown error'), 'danger');
+              buttonElement.disabled = false;
+              buttonElement.textContent = originalText;
+            }
+          })
+          .catch(err => {
+            console.error('Error approving booking:', err);
+            showNotification('Error approving booking. Please try again.', 'danger');
+            buttonElement.disabled = false;
+            buttonElement.textContent = originalText;
+          });
+      }
+
+      // generic modal handling for handover/receive
+      let currentHandoverId = null;
+      let handoverMode = null; // 'start' or 'receive'
+
+      function startHandover(bookingId) {
+        handoverMode = 'start';
+        currentHandoverId = bookingId;
+        document.getElementById('handoverModalLabel').textContent = 'Vehicle Condition Before Handover';
+        document.getElementById('handoverModal').querySelectorAll('input[name="damage"]').forEach(cb=>cb.checked=false);
+        document.getElementById('damageReport').value = '';
+        document.getElementById('penaltyAmount').value = '';
+        // hide penalty input for start-of-handover
+        const penaltyGroup = document.getElementById('penaltyGroup');
+        if (penaltyGroup) penaltyGroup.style.display = 'none';
+        const noPenalty = document.getElementById('noPenaltyCheckbox');
+        if (noPenalty) { noPenalty.checked = false; noPenalty.style.display = 'none'; }
+        const modal = new bootstrap.Modal(document.getElementById('handoverModal'));
+        modal.show();
+      }
+
+      function receiveHandover(bookingId) {
+        handoverMode = 'receive';
+        currentHandoverId = bookingId;
+        document.getElementById('handoverModalLabel').textContent = 'Vehicle Condition & Penalty';
+        document.getElementById('handoverModal').querySelectorAll('input[name="damage"]').forEach(cb=>cb.checked=false);
+        document.getElementById('damageReport').value = '';
+        document.getElementById('penaltyAmount').value = '';
+        // show penalty input for receive step
+        const penaltyGroup2 = document.getElementById('penaltyGroup');
+        if (penaltyGroup2) penaltyGroup2.style.display = '';
+        const noPenalty2 = document.getElementById('noPenaltyCheckbox');
+        if (noPenalty2) { noPenalty2.checked = false; noPenalty2.style.display = ''; }
+        const modal = new bootstrap.Modal(document.getElementById('handoverModal'));
+        modal.show();
+      }
+
+      // Open modal to add penalty for completed booking
+      function openAddPenaltyModal(bookingId, userName, vehicleName, currentAmount) {
+        document.getElementById('addPenaltyModal').dataset.mode = 'completed';
+        document.getElementById('addPenaltyLabel').textContent = 'Add Penalty for Completed Booking';
+        document.getElementById('add-penalty-booking-id').value = bookingId;
+        document.getElementById('add-penalty-user-name').value = userName;
+        document.getElementById('add-penalty-vehicle-name').value = vehicleName;
+        document.getElementById('add-penalty-amount').value = currentAmount || '';
+        document.getElementById('add-penalty-report').value = '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('addPenaltyModal'));
+        modal.show();
+      }
+
+      // Open modal to add penalty during handover
+      function openHandoverPenaltyModal(bookingId, userName, vehicleName) {
+        document.getElementById('addPenaltyModal').dataset.mode = 'handover';
+        document.getElementById('addPenaltyLabel').textContent = 'Record Penalty - Vehicle Handover';
+        document.getElementById('add-penalty-booking-id').value = bookingId;
+        document.getElementById('add-penalty-user-name').value = userName;
+        document.getElementById('add-penalty-vehicle-name').value = vehicleName;
+        document.getElementById('add-penalty-amount').value = '';
+        document.getElementById('add-penalty-report').value = '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('addPenaltyModal'));
+        modal.show();
+      }
+
+      // Handle add penalty form submission
+      document.getElementById('addPenaltyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const bookingId = document.getElementById('add-penalty-booking-id').value;
+        const amount = document.getElementById('add-penalty-amount').value;
+        const report = document.getElementById('add-penalty-report').value;
+
+        fetch('/api/admin/update-penalty', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            booking_id: bookingId,
+            penalty_amount: amount,
+            damage_report: report
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addPenaltyModal')).hide();
+            showNotification('✓ Penalty added successfully!', 'success');
+            loadBookings();
+          } else {
+            showNotification('Error: ' + (data.error || 'Could not add penalty'), 'danger');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showNotification('Error adding penalty', 'danger');
+        });
+      });
+
+      document.getElementById('handoverForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        const damages = Array.from(document.querySelectorAll('#handoverModal input[name="damage"]:checked')).map(i => i.value);
+        const notes = document.getElementById('damageReport').value;
+        const penalty = document.getElementById('penaltyAmount').value;
+        const noPenaltyChecked = document.getElementById('noPenaltyCheckbox') && document.getElementById('noPenaltyCheckbox').checked;
+        const payload = {
+          damage_report: damages.join(', ') + (notes ? ' | ' + notes : ''),
+          penalty_amount: (noPenaltyChecked ? '0' : penalty),
+          no_penalty: noPenaltyChecked
+        };
+        const suffix = handoverMode === 'receive' ? 'receive' : 'start';
+        fetch(`/admin/handover/${currentHandoverId}/${suffix}`, {
+          method:'POST',
+          credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        })
+        .then(r=>r.json())
+        .then(data=>{
+          if(data.success){
+            if(handoverMode === 'receive') {
+              showNotification('Handover received, booking completed', 'success');
+            } else {
+              showNotification('Handover record saved; user has been notified', 'success');
+            }
+            bootstrap.Modal.getInstance(document.getElementById('handoverModal')).hide();
+            loadBookings();
+          } else {
+            showNotification('Error: '+(data.error||'Unable to complete action'), 'danger');
+          }
+        })
+        .catch(err=>{
+          console.error('Handover receive error',err);
+          showNotification('Error receiving handover', 'danger');
+        });
+      });
+
+      // Load all data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadStats();
+        loadBookings();
+        loadRevenueChart();
+      });
+
+      // Refresh data every 10 seconds for real-time updates
+      setInterval(() => {
+        loadStats();
+        loadBookings();
+        loadRevenueChart();
+      }, 10000);
+
+      // Add focus listener to refresh when user returns to tab
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          loadStats();
+          loadBookings();
+        }
+      });
+
+      // Time and Location
+      function updateTime() {
+        const now = new Date();
+        document.getElementById('current-time').textContent =
+          now.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short', year: 'numeric' });
+      }
+      setInterval(updateTime, 1000);
+      updateTime();
+
+      function setLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            // Reverse geocoding using Nominatim (OpenStreetMap)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`)
+              .then(response => response.json())
+              .then(data => {
+                if (data && data.display_name) {
+                  // Extract city/state/country from the address
+                  const address = data.address || {};
+                  const city = address.city || address.town || address.village || address.county;
+                  const state = address.state;
+                  const country = address.country;
+                  
+                  let locationText = '';
+                  if (city && state) {
+                    locationText = `${city}, ${state}`;
+                  } else if (city) {
+                    locationText = city;
+                  } else if (state) {
+                    locationText = state;
+                  } else {
+                    locationText = data.display_name.split(',')[0]; // Fallback to first part
+                  }
+                  
+                  document.getElementById('current-location').textContent = locationText;
+                } else {
+                  document.getElementById('current-location').textContent = "Location unavailable";
+                }
+              })
+              .catch(error => {
+                console.error('Reverse geocoding error:', error);
+                document.getElementById('current-location').textContent = "Location unavailable";
+              });
+          }, function(error) {
+            console.error('Geolocation error:', error);
+            document.getElementById('current-location').textContent = "Location unavailable";
+          });
+        } else {
+          document.getElementById('current-location').textContent = "Geolocation not supported";
+        }
+      }
+      setLocation();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+ 

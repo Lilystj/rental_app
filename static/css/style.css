@@ -1,0 +1,178 @@
+:root{
+  --bg: #0f1115;
+  --card: #14161a;
+  --muted: #9aa0a6;
+  --accent: #ff7a18;
+}
+body{
+  /* Background animation is now handled in base.html */
+  color: #e6eef6;
+  min-height: 100vh;
+}
+
+.hero{
+  background-image: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('/static/uploads/carbike4.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: .5rem;
+  padding: 4rem 1.5rem;
+  min-height: 360px;
+  position: relative;
+}
+.card-dark{
+  background: var(--card);
+  color: inherit;
+}
+.btn-accent{
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+.muted{
+  color: var(--muted);
+}
+.login-panel .form-control{
+  background: #141418;
+  border: 1px solid #232426;
+  color: #e6eef6;
+}
+.vehicle-card{
+  background: linear-gradient(180deg, #111216, #0e1014);
+  border: 1px solid #222;
+  border-radius: .5rem;
+}
+.filters{ background: #0d0f12; border-radius:.5rem; padding:1rem; }
+
+/* Home layout: two centered login cards overlapping hero */
+.hero-wrap{
+  position: relative;
+}
+.login-panels{
+  position: relative;
+  /* move cards further down beneath the hero */
+  margin-top: 60px;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: stretch;
+}
+.login-card{
+  width: 340px;
+  border-radius: .5rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+.login-card .card-body{ padding:1.25rem; }
+.login-card .form-control{ background:#0d0f11; }
+
+/* Placeholder text styling - white */
+.form-control::placeholder{ color: #fff; opacity: 0.7; }
+input::placeholder, textarea::placeholder{ color: #fff; opacity: 0.7; }
+
+/* Input focus glow effect */
+.form-control:focus{
+  background: #0d0f11;
+  border-color: var(--accent);
+  color: #e6eef6;
+  box-shadow: 0 0 12px rgba(255, 122, 24, 0.3), inset 0 0 6px rgba(255, 122, 24, 0.1);
+}
+
+/* Card light effects - subtle glow and shadow */
+.card-dark{
+  background: linear-gradient(135deg, rgba(20,22,26,0.95), rgba(15,17,21,0.95));
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.05);
+}
+.login-card{
+  background: linear-gradient(135deg, rgba(20,22,26,1), rgba(15,17,21,1));
+  border: 1px solid rgba(255, 122, 24, 0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 20px rgba(255, 122, 24, 0.1);
+}
+
+/* Button hover effects with light glow */
+.btn-accent:hover{
+  background: #ff8c1a;
+  box-shadow: 0 0 20px rgba(255, 122, 24, 0.4);
+  transition: all 0.3s ease;
+}
+.btn-outline-warning:hover{
+  background: rgba(255, 122, 24, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(255, 122, 24, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Light effect for text headings */
+h1, h2, h3, h4, h5, h6{
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Hero light overlay and text contrast */
+.hero{
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.hero .lead{
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* Vehicle card light effects */
+.vehicle-card{
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s ease;
+}
+.vehicle-card:hover{
+  box-shadow: 0 8px 24px rgba(255, 122, 24, 0.15), inset 0 1px 1px rgba(255,255,255,0.1);
+  border-color: rgba(255, 122, 24, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Link hover glow */
+a{
+  transition: all 0.2s ease;
+}
+a:hover{
+  text-shadow: 0 0 8px rgba(255, 122, 24, 0.4);
+}
+
+/* Footer */
+.site-footer{
+  background: transparent;
+  color: var(--muted);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 1.25rem 0;
+}
+.social-icons a{ color: var(--muted); margin-right: .75rem; display:inline-block }
+.social-icons svg{ width:20px; height:20px; vertical-align:middle }
+
+/* Responsive: stack login cards on small screens and reduce overlap */
+@media (max-width: 768px) {
+  .hero{ padding: 2rem 1rem; min-height: 220px }
+  .hero .container{ padding-left:0; padding-right:0 }
+  .login-panels{ flex-direction: column; margin-top: 20px; gap: 1rem; align-items: center }
+  .login-card{ width: 100%; max-width: 420px }
+  .hero .display-5{ font-size: 1.6rem }
+  
+  /* Mobile container padding */
+  body { padding: 0 1rem; }
+  .container { padding-left: 1rem !important; padding-right: 1rem !important; }
+  
+  /* Reduce font sizes on mobile */
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.3rem !important; }
+  
+  /* Make buttons touch-friendly */
+  .btn { padding: 0.75rem 1.5rem; min-height: 44px; }
+  
+  /* Adjust card padding for mobile */
+  .card { padding: 1rem !important; }
+  .card-body { padding: 1rem !important; }
+}
+
+/* Keep central column width consistent */
+.hero > .container, .site-footer > .container{
+  max-width: 1100px;
+}
+
+
+

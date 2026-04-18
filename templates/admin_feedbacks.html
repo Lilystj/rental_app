@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Management - WheelShare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Static dark background for admin panel */
+        body {
+            background: #0f1115;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+      /* Remove static background to allow animated background from base.html */
+      body { color: #fff; min-height: 100vh; }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem 1rem 2.5rem;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .stats-cards {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .stats-card {
+        background: #23272b;
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        flex: 1;
+        min-width: 180px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .stats-card .label { 
+        color: #aaa; 
+        font-size: 0.95rem; 
+      }
+      .stats-card .value { 
+        font-size: 2rem; 
+        font-weight: 700; 
+        color: #ff9800; 
+      }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        padding: 1.5rem;
+      }
+      .search-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .search-filters select {
+        background: #1a1d20;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        color: #fff;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+      }
+      .search-filters select:focus {
+        border-color: #ff9800;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.2);
+        outline: none;
+      }
+      .feedback-item {
+        background: #1a1d20;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+      }
+      .feedback-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+      }
+      .feedback-user {
+        font-weight: 700;
+        color: #ff9800;
+      }
+      .feedback-rating {
+        color: #ffc107;
+        font-size: 1.1rem;
+      }
+      .feedback-message {
+        color: #ccc;
+        margin: 0.8rem 0;
+        line-height: 1.5;
+      }
+      .feedback-meta {
+        color: #aaa;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+      }
+      .feedback-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      .btn-success {
+        background: #4caf50;
+        border: none;
+        color: #fff;
+      }
+      .btn-success:hover {
+        background: #45a049;
+      }
+      .btn-warning {
+        background: #ff9800;
+        border: none;
+        color: #181c20;
+      }
+      .btn-warning:hover {
+        background: #f57c00;
+      }
+      .btn-danger {
+        background: #f44336;
+        border: none;
+        color: #fff;
+      }
+      .btn-danger:hover {
+        background: #da190b;
+      }
+      .badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+      .bg-success {
+        background: #4caf50 !important;
+      }
+      .bg-warning {
+        background: #ff9800 !important;
+        color: #181c20 !important;
+      }
+      .bg-danger {
+        background: #f44336 !important;
+      }
+      @media (max-width: 1100px) {
+        .main-content { margin-left: 0; padding: 1rem; }
+        .sidebar { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid #23272b; }
+      }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link active" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+    </div>
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">Feedback Management</div>
+            <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stats-card">
+                <div class="label">Total Feedbacks</div>
+                <div class="value" id="total-feedbacks">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Approved</div>
+                <div class="value" id="approved-feedbacks">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Pending</div>
+                <div class="value" id="pending-feedbacks">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Avg Rating</div>
+                <div class="value" id="avg-rating">...</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card-dark">
+            <div class="search-filters">
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Hidden">Hidden</option>
+                </select>
+                <select id="rating-filter">
+                    <option value="">All Ratings</option>
+                    <option value="5">5 Stars</option>
+                    <option value="4">4 Stars</option>
+                    <option value="3">3 Stars</option>
+                    <option value="2">2 Stars</option>
+                    <option value="1">1 Star</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Feedbacks List -->
+        <div class="card-dark mt-3">
+            <div class="fw-bold mb-3">Recent Feedbacks</div>
+            <div id="feedbacks-list">
+                <div class="text-center text-muted py-4">Loading feedbacks...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      // Generate star rating HTML
+      function generateStars(rating) {
+        let stars = '';
+        for (let i = 0; i < 5; i++) {
+          stars += i < rating ? '⭐' : '☆';
+        }
+        return stars;
+      }
+
+      // Load feedback stats
+      function loadFeedbackStats() {
+        fetch('/admin/feedback-stats')
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('total-feedbacks').textContent = data.total_feedbacks;
+            document.getElementById('approved-feedbacks').textContent = data.approved;
+            document.getElementById('pending-feedbacks').textContent = data.pending;
+            document.getElementById('avg-rating').textContent = data.average_rating + ' ⭐';
+          })
+          .catch(err => console.error('Error fetching feedback stats:', err));
+      }
+
+      // Load feedbacks
+      function loadFeedbacks() {
+        const status = document.getElementById('status-filter').value;
+        const rating = document.getElementById('rating-filter').value;
+        
+        let url = `/admin/feedbacks-list?`;
+        if (status) url += `status=${status}&`;
+        if (rating) url += `rating=${rating}&`;
+        
+        fetch(url)
+          .then(res => res.json())
+          .then(data => {
+            const container = document.getElementById('feedbacks-list');
+            
+            if (data.feedbacks.length === 0) {
+              container.innerHTML = '<div class="text-center text-muted py-4">No feedbacks found</div>';
+              return;
+            }
+            
+            let html = '';
+            data.feedbacks.forEach(f => {
+              const statusColor = f.status === 'Approved' ? 'bg-success' : 
+                                 f.status === 'Pending' ? 'bg-warning' : 'bg-danger';
+              html += `
+                <div class="feedback-item">
+                  <div class="feedback-header">
+                    <div>
+                      <div class="feedback-user">${f.username}</div>
+                      <div class="feedback-rating">${generateStars(f.rating)}</div>
+                    </div>
+                    <span class="badge ${statusColor}">${f.status}</span>
+                  </div>
+                  <div class="feedback-message">"${f.message}"</div>
+                  <div class="feedback-meta">
+                    Vehicle: ${f.vehicle_name} • ${f.submitted_date}
+                  </div>
+                  <div class="feedback-actions">
+                    ${f.status === 'Pending' ? `<button class="btn btn-success btn-sm" onclick="approveFeedback(${f.id})">Approve</button>` : ''}
+                    ${f.status !== 'Hidden' ? `<button class="btn btn-warning btn-sm" onclick="hideFeedback(${f.id})">Hide</button>` : ''}
+                    <button class="btn btn-danger btn-sm" onclick="deleteFeedback(${f.id})">Delete</button>
+                  </div>
+                </div>
+              `;
+            });
+            
+            container.innerHTML = html;
+          })
+          .catch(err => {
+            console.error('Error loading feedbacks:', err);
+            showNotification('Unable to load feedbacks', 'danger');
+            document.getElementById('feedbacks-list').innerHTML = '';
+          });
+      }
+
+      // Approve feedback
+      function approveFeedback(feedbackId) {
+        fetch(`/admin/feedback/${feedbackId}/approve`, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              loadFeedbacks();
+              loadFeedbackStats();
+            }
+          })
+          .catch(err => console.error('Error approving feedback:', err));
+      }
+
+      // Hide feedback
+      function hideFeedback(feedbackId) {
+        fetch(`/admin/feedback/${feedbackId}/hide`, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              loadFeedbacks();
+              loadFeedbackStats();
+            }
+          })
+          .catch(err => console.error('Error hiding feedback:', err));
+      }
+
+      // Delete feedback
+      function deleteFeedback(feedbackId) {
+        if (!confirm('Delete this feedback?')) return;
+        
+        fetch(`/admin/feedback/${feedbackId}/delete`, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              loadFeedbacks();
+              loadFeedbackStats();
+            }
+          })
+          .catch(err => console.error('Error deleting feedback:', err));
+      }
+
+      // Event listeners
+      document.getElementById('status-filter').addEventListener('change', loadFeedbacks);
+      document.getElementById('rating-filter').addEventListener('change', loadFeedbacks);
+
+      // Load data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadFeedbackStats();
+        loadFeedbacks();
+        setInterval(() => {
+          loadFeedbackStats();
+          loadFeedbacks();
+        }, 30000);
+      });
+    </script>
+</body>
+</html>

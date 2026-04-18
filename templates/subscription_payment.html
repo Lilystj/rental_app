@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .payment-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .payment-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: #ff9800;
+    }
+    .payment-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .payment-card {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    .payment-header-card {
+        background: linear-gradient(135deg, #2c3036 0%, #23272b 100%);
+        padding: 1.5rem;
+        border-bottom: 1px solid #333;
+    }
+    .payment-body {
+        padding: 2rem;
+    }
+    .subscription-summary {
+        background: #1a1d20;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .summary-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #ff9800;
+    }
+    .payment-form {
+        background: #1a1d20;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        color: #ff9800;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .form-control {
+        background: #23272b;
+        border: 1px solid #ff9800;
+        color: #fff;
+        padding: 0.75rem;
+        border-radius: 8px;
+        width: 100%;
+        font-size: 1rem;
+    }
+    .form-control:focus {
+        outline: none;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
+        border-color: #ff9800;
+    }
+    .payment-methods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .payment-method {
+        background: #23272b;
+        border: 2px solid #333;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .payment-method:hover {
+        border-color: #ff9800;
+        transform: translateY(-2px);
+    }
+    .payment-method.selected {
+        border-color: #ff9800;
+        background: rgba(255, 152, 0, 0.1);
+    }
+    .payment-method-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .btn-pay {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-pay:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        color: #181c20;
+    }
+    .card-inputs {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1rem;
+    }
+    .plan-benefits {
+        background: #20242a;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    .plan-benefits h6 {
+        color: #ff9800;
+        margin-bottom: 1rem;
+    }
+    .benefit-item {
+        padding: 0.5rem 0;
+        color: #ccc;
+        font-size: 0.9rem;
+    }
+    @media (max-width: 768px) {
+        .card-inputs {
+            grid-template-columns: 1fr;
+        }
+        .payment-methods {
+            grid-template-columns: 1fr;
+        }
+        .payment-container {
+            max-width: 100%;
+            padding: 1rem;
+            margin: 0;
+        }
+        .payment-header h1 {
+            font-size: 1.8rem;
+        }
+        .payment-header {
+            margin-bottom: 1.5rem;
+        }
+        .payment-body {
+            padding: 1rem;
+        }
+        .payment-header-card {
+            padding: 1rem;
+        }
+        .payment-form {
+            padding: 1rem;
+        }
+        .subscription-summary {
+            padding: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .summary-row {
+            padding: 0.75rem 0;
+            font-size: 0.95rem;
+        }
+        .payment-method-icon {
+            font-size: 1.5rem;
+        }
+        .btn-pay {
+            padding: 0.85rem 1.5rem;
+            min-height: 44px;
+            font-size: 1rem;
+        }
+    }
+    @media (max-width: 480px) {
+        .payment-header h1 {
+            font-size: 1.5rem;
+        }
+        .payment-container {
+            padding: 0.75rem;
+        }
+        .payment-card {
+            margin-bottom: 1rem;
+        }
+        .summary-row {
+            font-size: 0.9rem;
+            padding: 0.5rem 0;
+        }
+        .payment-method {
+            padding: 0.75rem;
+        }
+        .payment-method-icon {
+            font-size: 1.3rem;
+        }
+        .form-control {
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-header">
+        <h1>💳 Subscription Payment</h1>
+        <p>Complete your subscription to unlock premium benefits</p>
+    </div>
+
+    <div class="payment-card">
+        <div class="payment-header-card">
+            <h4>{{ plan.name }} Plan</h4>
+        </div>
+        <div class="payment-body">
+            <!-- Subscription Summary -->
+            <div class="subscription-summary">
+                <h5 style="color: #ff9800; margin-bottom: 1rem;">Subscription Details</h5>
+                <div class="summary-row">
+                    <span>Plan Name:</span>
+                    <span>{{ plan.name }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Discount:</span>
+                    <span>{{ plan.discount_percent }}% off on bookings</span>
+                </div>
+                <div class="summary-row">
+                    <span>Duration:</span>
+                    <span>1 Month</span>
+                </div>
+                <div class="summary-row">
+                    <span>Free Cancellation:</span>
+                    <span>{{ plan.free_cancellation_hours }} hours</span>
+                </div>
+                <div class="summary-row">
+                    <span><strong>Monthly Price:</strong></span>
+                    <span><strong>₹{{ "%.2f"|format(plan.price_per_month) }}</strong></span>
+                </div>
+            </div>
+
+            <!-- Plan Benefits -->
+            <div class="plan-benefits">
+                <h6>What You'll Get:</h6>
+                <div class="benefit-item">✓ {{ plan.discount_percent }}% discount on all bookings</div>
+                <div class="benefit-item">✓ {{ plan.free_cancellation_hours }} hours free cancellation window</div>
+                <div class="benefit-item">✓ Up to {{ plan.rental_limit_per_month or 'Unlimited' }} rentals per month</div>
+                {% if plan.priority_booking %}
+                <div class="benefit-item">✓ Priority booking on new vehicles</div>
+                {% endif %}
+            </div>
+
+            <!-- Payment Form -->
+            <form method="POST" class="payment-form">
+                <h5 style="color: #ff9800; margin-bottom: 1.5rem;">Payment Details</h5>
+
+                <!-- Payment Method Selection -->
+                <div class="form-group">
+                    <label class="form-label">Select Payment Method</label>
+                    <div class="payment-methods">
+                        <div class="payment-method selected" data-method="card">
+                            <span class="payment-method-icon">💳</span>
+                            <span>Credit/Debit Card</span>
+                            <input type="radio" name="payment_method" value="card" checked style="display: none;">
+                        </div>
+                        <div class="payment-method" data-method="upi">
+                            <span class="payment-method-icon">📱</span>
+                            <span>UPI</span>
+                            <input type="radio" name="payment_method" value="upi" style="display: none;">
+                        </div>
+                        <div class="payment-method" data-method="netbanking">
+                            <span class="payment-method-icon">🏦</span>
+                            <span>Net Banking</span>
+                            <input type="radio" name="payment_method" value="netbanking" style="display: none;">
+                        </div>
+                        <div class="payment-method" data-method="account">
+                            <span class="payment-method-icon">🔒</span>
+                            <span>Pay with Account Password</span>
+                            <input type="radio" name="payment_method" value="account" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Details -->
+                <div id="card-details" class="card-inputs">
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-control" name="card_number" placeholder="1234 5678 9012 3456" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="text" class="form-control" name="expiry_date" placeholder="MM/YY" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CVV</label>
+                        <input type="text" class="form-control" name="cvv" placeholder="123" required>
+                    </div>
+                </div>
+
+                <!-- UPI Details -->
+                <div id="upi-details" class="form-group" style="display: none;">
+                    <label class="form-label">UPI ID</label>
+                    <input type="text" class="form-control" name="upi_id" placeholder="yourname@upi">
+                </div>
+
+                <!-- Net Banking Details -->
+                <div id="netbanking-details" class="form-group" style="display: none;">
+                    <label class="form-label">Select Bank</label>
+                    <select class="form-control" name="bank">
+                        <option value="">Choose your bank</option>
+                        <option value="sbi">State Bank of India</option>
+                        <option value="hdfc">HDFC Bank</option>
+                        <option value="icici">ICICI Bank</option>
+                        <option value="axis">Axis Bank</option>
+                    </select>
+                </div>
+
+                <!-- Account Password -->
+                <div id="account-details" class="form-group" style="display: none;">
+                    <label class="form-label">Account Password</label>
+                    <input type="password" class="form-control" name="account_password" placeholder="Enter your account password">
+                    <small style="color: #ccc; display:block; margin-top:8px;">Your password will be verified and the subscription will be activated immediately upon successful payment.</small>
+                </div>
+
+                <button type="submit" class="btn-pay">
+                    Subscribe for ₹{{ "%.2f"|format(plan.price_per_month) }}/month
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Payment method selection
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+            // Remove selected class from all methods
+            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+            // Add selected class to clicked method
+            this.classList.add('selected');
+            
+            // Check the radio button
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+            
+            // Show/hide payment details
+            const methodType = this.dataset.method;
+            document.getElementById('card-details').style.display = methodType === 'card' ? 'grid' : 'none';
+            document.getElementById('upi-details').style.display = methodType === 'upi' ? 'block' : 'none';
+            document.getElementById('netbanking-details').style.display = methodType === 'netbanking' ? 'block' : 'none';
+            document.getElementById('account-details').style.display = methodType === 'account' ? 'block' : 'none';
+            
+            // Update required attributes
+            document.querySelectorAll('input[name="card_number"], input[name="expiry_date"], input[name="cvv"]').forEach(input => {
+                input.required = methodType === 'card';
+            });
+            document.querySelector('input[name="upi_id"]').required = methodType === 'upi';
+            document.querySelector('select[name="bank"]').required = methodType === 'netbanking';
+            const accountInput = document.querySelector('input[name="account_password"]');
+            if (accountInput) accountInput.required = methodType === 'account';
+        });
+    });
+</script>
+{% endblock %}

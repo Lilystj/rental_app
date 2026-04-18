@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .booking-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .booking-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: #ff9800;
+    }
+    .booking-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .booking-header p {
+        color: #aaa;
+        font-size: 1.2rem;
+        margin: 0;
+    }
+    .booking-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 3rem;
+        align-items: start;
+    }
+    .vehicle-showcase {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    .vehicle-showcase-image {
+        height: 350px;
+        background: linear-gradient(135deg, #1a1d20 0%, #23272b 100%);
+        overflow: hidden;
+        position: relative;
+    }
+    .vehicle-showcase-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    .vehicle-showcase:hover .vehicle-showcase-image img {
+        transform: scale(1.05);
+    }
+    .vehicle-status-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 2;
+    }
+    .subscription-badge {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 2rem;
+        z-index: 3;
+        text-shadow: 0 0 6px rgba(255,215,0,0.8);
+    }
+    .status-available {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: #fff;
+    }
+    .status-booked {
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+    }
+    .status-maintenance {
+        background: linear-gradient(135deg, #f44336, #e57373);
+        color: #fff;
+    }
+    .vehicle-info {
+        padding: 2rem;
+    }
+    .vehicle-info h2 {
+        font-size: 2.2rem;
+        color: #ff9800;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    .vehicle-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.8rem;
+        background: rgba(255, 152, 0, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    .detail-icon {
+        font-size: 1.2rem;
+        width: 24px;
+        text-align: center;
+    }
+    .detail-content {
+        flex: 1;
+    }
+    .detail-label {
+        color: #aaa;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.2rem;
+    }
+    .detail-value {
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .booking-form-card {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        position: sticky;
+        top: 2rem;
+    }
+    .form-group {
+        margin-bottom: 2rem;
+    }
+    .form-label {
+        display: block;
+        color: #ff9800;
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+    }
+    .form-input {
+        width: 100%;
+        padding: 1rem 1.2rem;
+        background: #1a1d20;
+        border: 2px solid rgba(255, 152, 0, 0.2);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: #ff9800;
+        box-shadow: 0 0 15px rgba(255, 152, 0, 0.3);
+    }
+    .form-input[type="number"] {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    .price-breakdown {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(255, 167, 38, 0.05));
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .price-breakdown h3 {
+        color: #ff9800;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #aaa;
+        font-size: 0.95rem;
+    }
+    .price-row:last-child {
+        border-bottom: none;
+        border-top: 2px solid #ff9800;
+        padding-top: 1.2rem;
+        margin-top: 1rem;
+    }
+    .price-row strong {
+        color: #fff;
+        font-weight: 600;
+    }
+    .total-price {
+        font-size: 1.6rem !important;
+        font-weight: 700 !important;
+        color: #ff9800 !important;
+    }
+    .btn-book-now {
+        width: 100%;
+        background: linear-gradient(135deg, #ff9800, #ffa726);
+        color: #181c20;
+        padding: 1.2rem 2rem;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .btn-book-now:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    }
+    .btn-book-now:disabled {
+        background: linear-gradient(135deg, #666, #777);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    .back-link {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    .back-link a {
+        color: #ff9800;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+    .back-link a:hover {
+        color: #ffa726;
+        text-decoration: none;
+    }
+    .availability-notice {
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(229, 115, 115, 0.1));
+        border: 1px solid rgba(244, 67, 54, 0.3);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .availability-notice p {
+        color: #f44336;
+        margin: 0;
+        font-weight: 600;
+    }
+    @media (max-width: 1024px) {
+        .booking-layout {
+            grid-template-columns: 1fr;
+        }
+        .booking-form-card {
+            position: static;
+        }
+    }
+    @media (max-width: 768px) {
+        .booking-header h1 {
+            font-size: 2rem;
+        }
+        .vehicle-info h2 {
+            font-size: 1.8rem;
+        }
+        .vehicle-details {
+            grid-template-columns: 1fr;
+        }
+        .vehicle-showcase-image {
+            height: 250px;
+        }
+        .form-input[type="number"] {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="booking-container">
+    <div class="booking-header">
+        <h1>📋 Complete Your Booking</h1>
+        <p>Secure your vehicle reservation in just a few steps</p>
+    </div>
+
+    <div class="booking-layout">
+        <!-- Vehicle Showcase -->
+        <div class="vehicle-showcase" data-price="{{ vehicle.price_per_day or 0 }}" data-status="{{ vehicle.availability_status or 'Available' }}">
+            <div class="vehicle-showcase-image">
+                <img src="/static/uploads/{{ vehicle.image or 'placeholder.png' }}" alt="{{ vehicle.name or vehicle.brand }}" onerror="this.src='/static/uploads/placeholder.png'">
+                {% if vehicle.subscription_only %}
+                <div class="subscription-badge">👑</div>
+                {% endif %}
+                <div class="vehicle-status-badge {{
+                    'status-available' if vehicle.availability_status == 'Available' else
+                    'status-booked' if vehicle.availability_status == 'Booked' else
+                    'status-rented' if vehicle.availability_status == 'Rented' else
+                    'status-maintenance'
+                }}">
+                    {{ vehicle.availability_status or 'Available' }}
+                </div>
+            </div>
+            <div class="vehicle-info">
+                <h2>{{ vehicle.name or vehicle.brand }}</h2>
+                <div class="vehicle-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">📂</span>
+                        <div class="detail-content">
+                            <div class="detail-label">Category</div>
+                            <div class="detail-value">{{ vehicle.category or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⛽</span>
+                        <div class="detail-content">
+                            <div class="detail-label">Fuel Type</div>
+                            <div class="detail-value">{{ vehicle.fuel_type or 'Petrol' }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">👥</span>
+                        <div class="detail-content">
+                            <div class="detail-label">Seating</div>
+                            <div class="detail-value">{{ vehicle.seating_capacity or '4' }} seats</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⚙️</span>
+                        <div class="detail-content">
+                            <div class="detail-label">Transmission</div>
+                            <div class="detail-value">{{ vehicle.transmission or 'Manual' }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">🏷️</span>
+                        <div class="detail-content">
+                            <div class="detail-label">Vehicle License</div>
+                            <div class="detail-value">{{ vehicle.vehicle_number or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">📱</span>
+                        <div class="detail-content">
+                            <div class="detail-label">Category</div>
+                            <div class="detail-value">{{ vehicle.category or 'Car' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="booking-form-card">
+            {% if vehicle.subscription_only %}
+            <div class="availability-notice">
+                <p>👑 This vehicle is reserved for users with an active subscription.</p>
+            </div>
+        {% endif %}
+        {% if vehicle.availability_status != 'Available' %}
+            <div class="availability-notice">
+                <p>⚠️ This vehicle is currently {{ vehicle.availability_status|lower }}</p>
+            </div>
+        {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label">🪪 Proof of Identity *</label>
+                    <select name="proof_type" class="form-input" required>
+                        <option value="License">📄 Driving License</option>
+                        <option value="Aadhar">🆔 Aadhar Card</option>
+                        <option value="Passport">🛂 Passport</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">📸 Upload Document *</label>
+                    <input type="file" name="licence_proof" class="form-input" accept="image/*,.pdf" required>
+                    <small style="color: #aaa; font-size: 0.8rem; margin-top: 0.4rem; display: block;">Accepted: PDF, JPG, PNG (Max 5MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">📅 Number of Days</label>
+                    <input type="number" name="days" class="form-input" value="1" min="1" max="365" required onchange="updatePrice()" {{ 'disabled' if vehicle.availability_status != 'Available' else '' }}>
+                </div>
+
+                <!-- Price Breakdown -->
+                <div class="price-breakdown">
+                    <h3>💰 Price Breakdown</h3>
+                    <div class="price-row">
+                        <span>Daily Rate:</span>
+                        <strong>₹{{ "%.2f"|format(vehicle.price_per_day or 0) }}</strong>
+                    </div>
+                    <div class="price-row">
+                        <span>Number of Days:</span>
+                        <strong id="daysDisplay">1</strong>
+                    </div>
+                    <div class="price-row total-price">
+                        <span>Total Price:</span>
+                        <span id="totalPrice">₹{{ "%.2f"|format(vehicle.price_per_day or 0) }}</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-book-now" {{ 'disabled' if vehicle.availability_status != 'Available' else '' }}>
+                    {% if vehicle.availability_status == 'Available' %}
+                        🚗 Confirm Booking →
+                    {% else %}
+                        ❌ Not Available
+                    {% endif %}
+                </button>
+            </form>
+
+            <div class="back-link">
+                <a href="/vehicles">← Back to Vehicles</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get vehicle data from data attributes (safer than inline Jinja2)
+    const showcase = document.querySelector('.vehicle-showcase');
+    const pricePerDay = parseFloat(showcase.getAttribute('data-price')) || 0;
+    const status = showcase.getAttribute('data-status') || 'Available';
+
+    // Update price based on number of days
+    function updatePrice() {
+        const daysInput = document.querySelector('input[name="days"]');
+        if (!daysInput) return;
+
+        const days = parseInt(daysInput.value) || 1;
+        const total = pricePerDay * days;
+
+        const daysDisplay = document.getElementById('daysDisplay');
+        const totalPrice = document.getElementById('totalPrice');
+
+        if (daysDisplay) daysDisplay.textContent = days;
+        if (totalPrice) totalPrice.textContent = '₹' + total.toFixed(2);
+    }
+
+    // Initialize price on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePrice();
+    });
+</script>
+{% endblock %}

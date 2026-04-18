@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(33, 150, 243, 0.05));
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+
+    .profile-avatar-large {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+    }
+
+    .profile-header h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #ff9800;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-header p {
+        color: #aaa;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .profile-card {
+        background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-card h3 {
+        color: #ff9800;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .profile-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-field {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.2rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+
+    .profile-field-label {
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .profile-field-value {
+        color: #fff;
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .profile-row.full {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        color: #fff;
+        border: none;
+        padding: 0.85rem 2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+    }
+
+    .btn-back {
+        background: rgba(255, 152, 0, 0.1);
+        color: #ff9800;
+        border: 1px solid #ff9800;
+        padding: 0.85rem 2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-back:hover {
+        background: #ff9800;
+        color: #fff;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        background: rgba(255, 152, 0, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 3px solid #ff9800;
+    }
+
+    .stat-value {
+        color: #ff9800;
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    .stat-label {
+        color: #aaa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 600px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .profile-row {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-header h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar-large">{{ user.username[0].upper() if user.username else 'U' }}</div>
+        <h1>{{ user.username }}</h1>
+        <p>Member since {{ user.registration_date.strftime('%B %d, %Y') if user.registration_date else 'N/A' }}</p>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="profile-card">
+        <h3>👤 Personal Information</h3>
+        <div class="profile-row">
+            <div class="profile-field">
+                <span class="profile-field-label">Email</span>
+                <span class="profile-field-value">{{ user.email }}</span>
+            </div>
+            <div class="profile-field">
+                <span class="profile-field-label">Phone</span>
+                <span class="profile-field-value">{{ user.phone if user.phone else 'Not provided' }}</span>
+            </div>
+        </div>
+        <div class="profile-row">
+            <div class="profile-field">
+                <span class="profile-field-label">Age</span>
+                <span class="profile-field-value">{{ user.age if user.age else 'Not provided' }}</span>
+            </div>
+        </div>
+        <div class="profile-row full">
+            <div class="profile-field">
+                <span class="profile-field-label">Address</span>
+                <span class="profile-field-value">{{ user.address if user.address else 'Not provided' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Statistics -->
+    <div class="profile-card">
+        <h3>📊 Booking Statistics</h3>
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-value">{{ bookings_count }}</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">₹{{ "%.2f"|format(total_spent) }}</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Status -->
+    <div class="profile-card">
+        <h3>🔐 Account Status</h3>
+        <div class="profile-row">
+            <div class="profile-field">
+                <span class="profile-field-label">Status</span>
+                <span class="profile-field-value">
+                    {% if user.status == 'Active' %}
+                        <span style="color: #4caf50;">🟢 {{ user.status }}</span>
+                    {% else %}
+                        <span style="color: #f44336;">🔴 {{ user.status }}</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="profile-field">
+                <span class="profile-field-label">Account Type</span>
+                <span class="profile-field-value">{{ user.role.capitalize() }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="profile-card" style="background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2);">
+        <a href="/profile/edit" class="btn-edit">✏️ Edit Profile</a>
+        <a href="/dashboard" class="btn-back">← Back to Dashboard</a>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .edit-container {
+    max-width: 700px;
+    margin: 2rem auto;
+  }
+  .edit-card {
+    background: linear-gradient(135deg, rgba(35, 39, 43, 0.9), rgba(44, 48, 54, 0.7));
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 152, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  .edit-card h4 {
+    color: #ff9800;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  .form-label {
+    color: #aaa;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.9rem;
+  }
+  .form-control {
+    background: rgba(20, 24, 30, 0.8);
+    border: 1px solid rgba(255, 152, 0, 0.2);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  .form-control:focus {
+    background: rgba(20, 24, 30, 0.95);
+    border-color: rgba(255, 152, 0, 0.5);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.2);
+  }
+  .form-control::placeholder {
+    color: #666;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-row-full {
+    grid-column: 1 / -1;
+  }
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .btn-save {
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+  }
+  .btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 152, 0, 0.4);
+  }
+  .btn-cancel {
+    background: transparent;
+    color: #ff9800;
+    border: 2px solid #ff9800;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+  .btn-cancel:hover {
+    background: #ff9800;
+    color: #181c20;
+    text-decoration: none;
+  }
+  .alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .alert-success {
+    background: rgba(76, 175, 80, 0.1);
+    color: #66bb6a;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+  .alert-danger {
+    background: rgba(244, 67, 54, 0.1);
+    color: #ef5350;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+  }
+  @media (max-width: 600px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="edit-container">
+  <div class="edit-card">
+    <h4>✏️ Edit Vehicle</h4>
+    
+    <form method="post" enctype="multipart/form-data" id="editVehicleForm">
+      <div class="form-group">
+        <label class="form-label">Vehicle Name *</label>
+        <input type="text" name="name" class="form-control" value="{{ vehicle.name }}" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select name="category" class="form-control" required>
+            <option value="">Select Category</option>
+            <option value="Car" {% if vehicle.category == 'Car' %}selected{% endif %}>Car</option>
+            <option value="Bike" {% if vehicle.category == 'Bike' %}selected{% endif %}>Bike</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brand *</label>
+          <input type="text" name="brand" class="form-control" value="{{ vehicle.brand }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label class="form-label">Location *</label>
+          <input type="text" name="location" class="form-control" value="{{ vehicle.location or '' }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label class="form-label">
+            <input type="checkbox" name="subscription_only" value="1" {% if vehicle.subscription_only %}checked{% endif %}>
+            Premium subscription required for booking
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Vehicle Number *</label>
+          <input type="text" name="vehicle_number" class="form-control" value="{{ vehicle.vehicle_number }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Availability Status *</label>
+          <select name="availability_status" class="form-control" required>
+            <option value="Available" {% if vehicle.availability_status == 'Available' %}selected{% endif %}>Available</option>
+            <option value="Rented" {% if vehicle.availability_status == 'Rented' %}selected{% endif %}>Rented</option>
+            <option value="Maintenance" {% if vehicle.availability_status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price per Day (₹) *</label>
+          <input type="number" name="price_per_day" class="form-control" value="{{ vehicle.price_per_day }}" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price per Hour (₹) *</label>
+          <input type="number" name="price_per_hour" class="form-control" value="{{ vehicle.price_per_hour }}" step="0.01" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fuel Type *</label>
+          <select name="fuel_type" class="form-control" required>
+            <option value="">Select Fuel Type</option>
+            <option value="Petrol" {% if vehicle.fuel_type == 'Petrol' %}selected{% endif %}>Petrol</option>
+            <option value="Diesel" {% if vehicle.fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
+            <option value="Electric" {% if vehicle.fuel_type == 'Electric' %}selected{% endif %}>Electric</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transmission *</label>
+          <select name="transmission" class="form-control" required>
+            <option value="">Select Transmission</option>
+            <option value="Manual" {% if vehicle.transmission == 'Manual' %}selected{% endif %}>Manual</option>
+            <option value="Automatic" {% if vehicle.transmission == 'Automatic' %}selected{% endif %}>Automatic</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Seating Capacity *</label>
+        <input type="number" name="seating_capacity" class="form-control" value="{{ vehicle.seating_capacity }}" min="1" required>
+      </div>
+
+      <div class="form-group form-row-full">
+        <label class="form-label">Vehicle Image (optional)</label>
+        <input type="file" name="image" class="form-control" accept="image/*">
+        {% if vehicle.image %}
+          <small class="text-muted d-block mt-2">Current image: {{ vehicle.image }}</small>
+        {% endif %}
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-save">💾 Save Changes</button>
+        <a href="/admin/vehicles" class="btn-cancel">❌ Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('editVehicleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Validate required fields
+    const name = document.querySelector('[name="name"]').value.trim();
+    const category = document.querySelector('[name="category"]').value;
+    const brand = document.querySelector('[name="brand"]').value.trim();
+    
+    if (!name || !category || !brand) {
+      showNotification('Please fill in all required fields', 'warning');
+      return;
+    }
+    
+    this.submit();
+  });
+</script>
+
+{% endblock %}

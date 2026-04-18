@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="login-select-container">
+    <div class="login-select-card">
+        <h2 class="text-center mb-5">Choose Login Type</h2>
+        
+        <div class="row g-4">
+            <!-- User Login Card -->
+            <div class="col-md-6">
+                <a href="/user/login" class="login-type-link">
+                    <div class="login-type-card user-card">
+                        <div class="login-type-icon">
+                            <span>👤</span>
+                        </div>
+                        <h3>User Login</h3>
+                        <p>Access your bookings and vehicle rentals</p>
+                        <button class="btn btn-primary">Continue as User</button>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Admin Login Card -->
+            <div class="col-md-6">
+                <a href="/admin/login" class="login-type-link">
+                    <div class="login-type-card admin-card">
+                        <div class="login-type-icon">
+                            <span>⚙️</span>
+                        </div>
+                        <h3>Admin Login</h3>
+                        <p>Manage vehicles, users, and bookings</p>
+                        <button class="btn btn-warning">Continue as Admin</button>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-select-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: linear-gradient(135deg, #0f1115 0%, #1a1d23 50%, #0e1014 100%);
+    }
+
+    .login-select-card {
+        background: rgba(35, 39, 43, 0.95);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        max-width: 900px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    .login-select-card h2 {
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .login-type-link {
+        text-decoration: none;
+    }
+
+    .login-type-card {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+        border: 2px solid rgba(255, 152, 0, 0.2);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        min-height: 350px;
+        justify-content: center;
+    }
+
+    .login-type-card:hover {
+        border-color: rgba(255, 152, 0, 0.6);
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
+        box-shadow: 0 10px 30px rgba(255, 152, 0, 0.2);
+        transform: translateY(-5px);
+    }
+
+    .login-type-card.admin-card {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+        border-color: rgba(33, 150, 243, 0.2);
+    }
+
+    .login-type-card.admin-card:hover {
+        border-color: rgba(33, 150, 243, 0.6);
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
+        box-shadow: 0 10px 30px rgba(33, 150, 243, 0.2);
+    }
+
+    .login-type-icon {
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .login-type-card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .login-type-card p {
+        color: #aaa;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-type-card .btn {
+        margin-top: auto;
+    }
+
+    /* Page load animations */
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes iconBounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @keyframes glowPulse {
+        0%, 100% {
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 40px rgba(255, 152, 0, 0.4);
+        }
+    }
+
+    /* Apply animations */
+    .login-select-container {
+        animation: fadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .login-select-card {
+        animation: slideInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .login-select-card h2 {
+        animation: slideInUp 0.7s ease-out;
+        opacity: 0;
+        animation-fill-mode: forwards;
+    }
+
+    .col-md-6:first-child .login-type-card {
+        animation: slideInLeft 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .col-md-6:last-child .login-type-card {
+        animation: slideInRight 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .login-type-icon {
+        animation: iconBounce 2s ease-in-out infinite;
+        display: inline-block;
+    }
+
+    .login-type-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-type-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .login-type-card:hover::before {
+        left: 100%;
+    }
+
+    .login-type-card .btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .login-type-card .btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .login-type-card .btn:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+
+    @media (max-width: 768px) {
+        .login-select-card {
+            padding: 2rem 1rem;
+        }
+
+        .login-type-card {
+            padding: 1.5rem 1rem;
+            min-height: 300px;
+        }
+
+        .login-type-icon {
+            font-size: 3rem;
+        }
+    }
+
+</style>
+{% endblock %}

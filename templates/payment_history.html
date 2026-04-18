@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fadeInUp" style="animation: fadeInUp 0.6s ease-out;">Payment History</h1>
+            <p class="text-muted fadeInUp" style="animation: fadeInUp 0.8s ease-out; animation-delay: 0.1s;">View all your transactions and payments</p>
+        </div>
+    </div>
+
+    <!-- Payment Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card payment-stat-card" style="animation: fadeInUp 0.6s ease-out;">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Payments</h6>
+                    <h3 id="totalPayments" style="color: #ff9800; font-weight: bold;">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card payment-stat-card" style="animation: fadeInUp 0.6s ease-out; animation-delay: 0.1s;">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Amount Paid</h6>
+                    <h3 id="totalAmount" style="color: #4caf50; font-weight: bold;">₹0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card payment-stat-card" style="animation: fadeInUp 0.6s ease-out; animation-delay: 0.2s;">
+                <div class="card-body">
+                    <h6 class="text-muted">Successful Transactions</h6>
+                    <h3 id="successCount" style="color: #2196f3; font-weight: bold;">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Table -->
+    <div class="card" style="animation: fadeInUp 0.6s ease-out; animation-delay: 0.3s;">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Recent Transactions</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" id="tableContainer">
+                <table class="table table-hover" id="paymentsTable">
+                    <thead>
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Date</th>
+                            <th>Vehicle/Plan</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Transaction Details</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsList">
+                        <!-- Payments will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="text-center py-5" style="display: none;">
+                <p class="text-muted">No payments found</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Receipt Modal -->
+    <div id="receiptModal" class="modal" style="display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-lg" style="position: relative; width: auto; margin: auto; max-width: 600px; display: flex; align-items: center; justify-content: center; height: 100%;">
+            <div class="modal-content" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); width: 100%;">
+                <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h5 class="modal-title" style="color: #333; font-weight: 600; margin: 0;">Payment Receipt</h5>
+                    <button type="button" onclick="closeModal()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+                </div>
+                <div class="modal-body" id="receiptContent" style="padding: 30px; background-color: #ffffff; color: #333; max-height: 400px; overflow-y: auto;">
+                    <!-- Receipt content will be loaded here -->
+                </div>
+                <div class="modal-footer" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6; padding: 15px 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" onclick="closeModal()" class="btn btn-secondary" style="background-color: #6c757d; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;">Close</button>
+                    <button type="button" onclick="printReceipt()" class="btn btn-primary" style="background-color: #ff9800; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;">Print Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-stat-card {
+        border: none;
+        border-radius: 12px;
+        padding: 20px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-stat-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .table tbody tr {
+        animation: fadeInUp 0.4s ease-out;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .status-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-failed {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .btn-view-receipt {
+        padding: 4px 12px;
+        font-size: 12px;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .receipt-section {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .receipt-section:last-child {
+        border-bottom: none;
+    }
+
+    .alert {
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .table {
+            font-size: 12px;
+        }
+        
+        .table thead th {
+            font-size: 11px;
+            padding: 8px 4px;
+        }
+        
+        .table tbody td {
+            padding: 8px 4px;
+        }
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+        .container {
+            margin: 0;
+            padding: 0;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPaymentHistory();
+    });
+
+    function closeModal() {
+        const modal = document.getElementById('receiptModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function openModal() {
+        const modal = document.getElementById('receiptModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    // Close modal when clicking outside the content
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('receiptModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    function loadPaymentHistory() {
+        fetch('/api/payment/history', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.payments) {
+                displayPayments(data.payments);
+                updateStats(data.payments);
+            } else {
+                const errorMsg = data.error || 'Unable to load payment history';
+                console.error('Error from server:', errorMsg);
+                showError('No payment history found. ' + errorMsg);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading payment history:', error);
+            showError('Failed to load payments: ' + error.message);
+        });
+    }
+
+    function showError(message) {
+        const tbody = document.getElementById('paymentsList');
+        const emptyState = document.getElementById('emptyState');
+        const tableContainer = document.getElementById('tableContainer');
+        
+        if (tableContainer) {
+            tableContainer.style.display = 'none';
+        }
+        if (emptyState) {
+            emptyState.innerHTML = `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>⚠️ Error:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+            emptyState.style.display = 'block';
+        }
+    }
+
+    function displayPayments(payments) {
+        const tbody = document.getElementById('paymentsList');
+        const emptyState = document.getElementById('emptyState');
+        const tableContainer = document.getElementById('tableContainer');
+
+        if (!payments || payments.length === 0) {
+            tbody.innerHTML = '';
+            if (tableContainer) {
+                tableContainer.style.display = 'none';
+            }
+            if (emptyState) {
+                emptyState.innerHTML = '<div class="alert alert-info">No payments found. Your payment history will appear here.</div>';
+                emptyState.style.display = 'block';
+            }
+            return;
+        }
+
+        if (tableContainer) {
+            tableContainer.style.display = 'block';
+        }
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
+        
+        tbody.innerHTML = '';
+
+        payments.forEach((payment, index) => {
+            const statusClass = `status-${payment.status.toLowerCase()}`;
+            const row = document.createElement('tr');
+            row.style.animation = `fadeInUp 0.4s ease-out`;
+            row.style.animationDelay = `${index * 0.05}s`;
+            
+            const transactionId = payment.transaction_id || 'N/A';
+            
+            row.innerHTML = `
+                <td>${payment.created_date || 'N/A'}</td>
+                <td>${payment.vehicle_name || 'N/A'}</td>
+                <td><strong>₹${parseFloat(payment.amount).toFixed(2)}</strong></td>
+                <td><span class="badge bg-info">${(payment.payment_method || 'N/A').toUpperCase()}</span></td>
+                <td><span class="status-badge ${statusClass}">${(payment.status || 'Unknown').toUpperCase()}</span></td>
+                <td>
+                    <div style="font-size: 12px;">
+                        <strong style="color: #333;">ID:</strong> <span class="text-muted">${transactionId}</span><br/>
+                        <strong style="color: #333;">Ref:</strong> <span class="text-muted">#${payment.id}</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary btn-view-receipt" onclick="showReceipt(${payment.id}, '${(payment.vehicle_name || '').replace(/'/g, "\\'")}', ${payment.amount}, '${payment.created_date}', '${payment.transaction_id}', '${payment.status || 'Unknown'}')">
+                        View
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function updateStats(payments) {
+        const total = payments.length;
+        const totalAmount = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+        const successCount = payments.filter(p => p.status === 'Success').length;
+
+        document.getElementById('totalPayments').textContent = total;
+        document.getElementById('totalAmount').textContent = '₹' + totalAmount.toFixed(2);
+        document.getElementById('successCount').textContent = successCount;
+    }
+
+    function showReceipt(paymentId, vehicleName, amount, date, transactionId, status) {
+        const receiptContent = document.getElementById('receiptContent');
+        
+        if (!receiptContent) {
+            showNotification('Error loading receipt. Please refresh the page.', 'danger');
+            return;
+        }
+
+        // Determine status badge color based on status
+        let statusBadgeClass = 'bg-success';
+        let statusText = (status || 'Unknown').toUpperCase();
+        
+        if (status === 'Pending') {
+            statusBadgeClass = 'bg-warning';
+        } else if (status === 'Failed') {
+            statusBadgeClass = 'bg-danger';
+        }
+        
+        receiptContent.innerHTML = `
+            <div class="receipt-section" style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #ff9800;">
+                <h2 style="color: #ff9800; margin: 0; font-size: 28px;">WheelShare</h2>
+                <p style="color: #666; margin: 5px 0; font-size: 14px;">Vehicle Rental Services</p>
+                <p style="color: #999; margin: 5px 0; font-size: 12px; font-weight: 600;">PAYMENT RECEIPT</p>
+            </div>
+
+            <div class="receipt-section" style="margin-top: 20px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+                <table style="width: 100%; font-size: 14px;">
+                    <tr style="height: 30px;">
+                        <td style="font-weight: 600; color: #333;">Receipt No:</td>
+                        <td style="text-align: right; color: #666;">#${paymentId}</td>
+                    </tr>
+                    <tr style="height: 30px; background-color: #f9f9f9;">
+                        <td style="font-weight: 600; color: #333;">Date:</td>
+                        <td style="text-align: right; color: #666;">${date || 'N/A'}</td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="font-weight: 600; color: #333;">Transaction ID:</td>
+                        <td style="text-align: right; color: #666; word-break: break-all;">${transactionId || 'N/A'}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="receipt-section" style="margin-top: 20px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+                <h5 style="color: #333; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Transaction Details</h5>
+                <table style="width: 100%; font-size: 14px;">
+                    <tr style="height: 30px;">
+                        <td style="font-weight: 600; color: #333;">Vehicle/Plan Name:</td>
+                        <td style="text-align: right; color: #666;">${vehicleName || 'N/A'}</td>
+                    </tr>
+                    <tr style="height: 30px; background-color: #f9f9f9;">
+                        <td style="font-weight: 600; color: #333;">Amount Paid:</td>
+                        <td style="text-align: right; font-weight: 700; color: #4caf50; font-size: 16px;">₹${parseFloat(amount).toFixed(2)}</td>
+                    </tr>
+                    <tr style="height: 30px;">
+                        <td style="font-weight: 600; color: #333;">Payment Status:</td>
+                        <td style="text-align: right;"><span class="badge ${statusBadgeClass}" style="padding: 5px 12px;">${statusText}</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="receipt-section" style="margin-top: 20px; text-align: center;">
+                <p style="color: #999; font-size: 12px; margin: 0; line-height: 1.6;">
+                    This is an automated receipt generated by WheelShare Services.<br/>
+                    For any queries, please contact:<br/>
+                    <strong style="color: #666;">support@wheelshare.com</strong> | <strong style="color: #666;">877-408-0795</strong>
+                </p>
+            </div>
+        `;
+
+        // Show the modal
+        openModal();
+    }
+
+    function printReceipt() {
+        try {
+            const receiptContent = document.getElementById('receiptContent');
+            if (!receiptContent) {
+                showNotification('Receipt content not found', 'danger');
+                return;
+            }
+
+            const printWindow = window.open('', '_blank', 'height=600,width=900');
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Payment Receipt - WheelShare</title>
+                        <style>
+                            * {
+                                margin: 0;
+                                padding: 0;
+                                box-sizing: border-box;
+                            }
+                            body {
+                                font-family: 'Arial', 'Helvetica', sans-serif;
+                                background-color: #ffffff;
+                                color: #333;
+                                line-height: 1.6;
+                            }
+                            .receipt-container {
+                                max-width: 600px;
+                                margin: 0 auto;
+                                padding: 40px 20px;
+                                background-color: white;
+                            }
+                            .receipt-header {
+                                text-align: center;
+                                padding-bottom: 20px;
+                                border-bottom: 3px solid #ff9800;
+                                margin-bottom: 20px;
+                            }
+                            .receipt-header h1 {
+                                color: #ff9800;
+                                font-size: 32px;
+                                margin-bottom: 5px;
+                            }
+                            .receipt-header p {
+                                color: #666;
+                                font-size: 14px;
+                            }
+                            .receipt-section {
+                                margin-bottom: 20px;
+                                padding-bottom: 15px;
+                                border-bottom: 1px solid #e0e0e0;
+                            }
+                            .receipt-section:last-child {
+                                border-bottom: none;
+                            }
+                            table {
+                                width: 100%;
+                                font-size: 14px;
+                                border-collapse: collapse;
+                            }
+                            tr {
+                                height: 28px;
+                            }
+                            tr:nth-child(even) {
+                                background-color: #f9f9f9;
+                            }
+                            td {
+                                padding: 8px 0;
+                                border: none;
+                            }
+                            td:first-child {
+                                font-weight: 600;
+                                color: #333;
+                                width: 50%;
+                            }
+                            td:last-child {
+                                text-align: right;
+                                color: #666;
+                            }
+                            @media print {
+                                body {
+                                    margin: 0;
+                                    padding: 0;
+                                }
+                                .receipt-container {
+                                    padding: 20px;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="receipt-container">
+                            ${receiptContent.innerHTML}
+                        </div>
+                    </body>
+                </html>
+            `;
+            
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            
+            setTimeout(function() {
+                printWindow.print();
+            }, 250);
+        } catch (e) {
+            console.error('Error printing receipt:', e);
+            showNotification('Error printing receipt. Please try again.', 'danger');
+        }
+    }
+</script>
+{% endblock %}

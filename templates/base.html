@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>WheelShare</title>
+        <!-- Bootstrap 5 -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <!-- Custom dark styles -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <style>
+            .profile-dropdown {
+                position: relative;
+            }
+
+            .profile-toggle {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.5rem 1rem;
+                background: rgba(255, 152, 0, 0.1);
+                border: 1px solid rgba(255, 152, 0, 0.3);
+                border-radius: 25px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                color: #fff;
+                text-decoration: none;
+            }
+
+            .profile-toggle:hover {
+                background: rgba(255, 152, 0, 0.2);
+                border-color: rgba(255, 152, 0, 0.5);
+            }
+
+            .profile-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #ff9800, #ffb74d);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                color: #fff;
+                font-size: 0.9rem;
+            }
+
+            .profile-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                margin-top: 0.5rem;
+                background: #23272b;
+                border: 1px solid rgba(255, 152, 0, 0.3);
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+                min-width: 200px;
+                display: none;
+                z-index: 1000;
+                overflow: hidden;
+            }
+
+            .profile-menu.show {
+                display: block;
+                animation: slideDown 0.2s ease;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .profile-menu-header {
+                padding: 1rem;
+                border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+                background: rgba(255, 152, 0, 0.05);
+            }
+
+            .profile-menu-username {
+                font-weight: 600;
+                color: #ff9800;
+                margin-bottom: 0.25rem;
+            }
+
+            .profile-menu-email {
+                font-size: 0.85rem;
+                color: #aaa;
+            }
+
+            .profile-menu-item {
+                padding: 0.75rem 1rem;
+                color: #fff;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                transition: all 0.2s ease;
+                border: none;
+                background: none;
+                width: 100%;
+                text-align: left;
+                cursor: pointer;
+            }
+
+            .profile-menu-item:hover {
+                background: rgba(255, 152, 0, 0.1);
+                padding-left: 1.25rem;
+                color: #ffb74d;
+            }
+
+            .profile-menu-item.logout {
+                border-top: 1px solid rgba(255, 152, 0, 0.2);
+                color: #f44336;
+            }
+
+            .profile-menu-item.logout:hover {
+                background: rgba(244, 67, 54, 0.1);
+                color: #ff6b6b;
+            }
+
+            .profile-menu-item-icon {
+                font-size: 1.1rem;
+            }
+        </style>
+        <!-- Animated Background Styles -->
+        <style>
+            body {
+                background: linear-gradient(135deg, #0f1115 0%, #1a1d23 25%, #0e1014 50%, #14161a 75%, #0f1115 100%);
+                background-size: 400% 400%;
+                animation: subtleGradient 20s ease infinite;
+                position: relative;
+                overflow-x: hidden;
+            }
+
+            /* Subtle geometric patterns for admin interface */
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background:
+                    /* Grid pattern overlay */
+                    linear-gradient(rgba(255, 152, 0, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 152, 0, 0.03) 1px, transparent 1px),
+                    /* Subtle data flow lines */
+                    linear-gradient(45deg, rgba(33, 150, 243, 0.02) 0%, transparent 50%, rgba(76, 175, 80, 0.02) 100%),
+                    /* Professional accent gradients */
+                    radial-gradient(circle at 20% 80%, rgba(255, 152, 0, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 20%, rgba(33, 150, 243, 0.06) 0%, transparent 40%),
+                    radial-gradient(circle at 60% 60%, rgba(76, 175, 80, 0.05) 0%, transparent 40%);
+                background-size: 50px 50px, 50px 50px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+                animation: dataFlow 25s ease-in-out infinite;
+                pointer-events: none;
+                z-index: -1;
+            }
+
+            /* Additional light particles */
+            body::after {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: 
+                    radial-gradient(circle at 25% 25%, rgba(255, 152, 0, 0.08) 3px, transparent 3px),
+                    radial-gradient(circle at 75% 75%, rgba(33, 150, 243, 0.06) 2px, transparent 2px),
+                    radial-gradient(circle at 50% 50%, rgba(76, 175, 80, 0.07) 2.5px, transparent 2.5px),
+                    radial-gradient(circle at 15% 85%, rgba(255, 152, 0, 0.1) 4px, transparent 4px),
+                    radial-gradient(circle at 85% 15%, rgba(33, 150, 243, 0.09) 3.5px, transparent 3.5px);
+                background-size: 120px 120px, 180px 180px, 150px 150px, 200px 200px, 160px 160px;
+                animation: particleFloat 35s linear infinite;
+                pointer-events: none;
+                z-index: -1;
+                filter: blur(0.3px);
+            }
+
+            /* Professional floating elements for admin interface */
+            .admin-float-element {
+                position: fixed;
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(255, 152, 0, 0.08) 0%, rgba(255, 152, 0, 0.03) 50%, transparent 100%);
+                animation: professionalFloat 20s ease-in-out infinite;
+                pointer-events: none;
+                z-index: -1;
+                filter: blur(15px);
+            }
+
+            .admin-float-element:nth-child(1) {
+                top: 15%;
+                left: 10%;
+                animation-delay: 0s;
+                background: radial-gradient(circle, rgba(255, 152, 0, 0.1) 0%, rgba(255, 152, 0, 0.04) 50%, transparent 100%);
+            }
+
+            .admin-float-element:nth-child(2) {
+                top: 70%;
+                right: 15%;
+                animation-delay: 7s;
+                background: radial-gradient(circle, rgba(33, 150, 243, 0.08) 0%, rgba(33, 150, 243, 0.03) 50%, transparent 100%);
+            }
+
+            .admin-float-element:nth-child(3) {
+                bottom: 25%;
+                left: 25%;
+                animation-delay: 14s;
+                background: radial-gradient(circle, rgba(76, 175, 80, 0.07) 0%, rgba(76, 175, 80, 0.02) 50%, transparent 100%);
+            }
+
+            @keyframes subtleGradient {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+            }
+
+            @keyframes dataFlow {
+                0%, 100% {
+                    background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+                }
+                25% {
+                    background-position: 10px 10px, 10px 10px, 20% 20%, 10% 90%, 90% 10%, 70% 70%;
+                }
+                50% {
+                    background-position: 20px 20px, 20px 20px, 40% 40%, 20% 80%, 80% 20%, 60% 60%;
+                }
+                75% {
+                    background-position: 10px 10px, 10px 10px, 60% 60%, 30% 70%, 70% 30%, 50% 50%;
+                }
+            }
+
+            @keyframes particleFloat {
+                0% {
+                    transform: translateY(0px) translateX(0px);
+                }
+                33% {
+                    transform: translateY(-150px) translateX(30px);
+                }
+                66% {
+                    transform: translateY(-300px) translateX(-20px);
+                }
+                100% {
+                    transform: translateY(-450px) translateX(0px);
+                }
+            }
+
+            @keyframes dataLineSweep {
+                0% {
+                    left: -200px;
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 0.6;
+                }
+                90% {
+                    opacity: 0.6;
+                }
+                100% {
+                    left: 100%;
+                    opacity: 0;
+                }
+            }
+
+            /* Subtle pulse effect on main content */
+            main.container {
+                position: relative;
+                z-index: 1;
+            }
+
+            main.container::before {
+                content: '';
+                position: absolute;
+                top: -30px;
+                left: -30px;
+                right: -30px;
+                bottom: -30px;
+                background: linear-gradient(45deg, rgba(255, 152, 0, 0.08), rgba(33, 150, 243, 0.05), rgba(76, 175, 80, 0.06));
+                border-radius: 25px;
+                animation: contentGlow 10s ease-in-out infinite;
+                pointer-events: none;
+                z-index: -1;
+                box-shadow: 
+                    0 0 50px rgba(255, 152, 0, 0.1),
+                    inset 0 0 50px rgba(33, 150, 243, 0.05);
+            }
+
+            @keyframes contentGlow {
+                0%, 100% { 
+                    opacity: 0.4; 
+                    transform: scale(1); 
+                    box-shadow: 
+                        0 0 50px rgba(255, 152, 0, 0.1),
+                        inset 0 0 50px rgba(33, 150, 243, 0.05);
+                }
+                50% { 
+                    opacity: 0.7; 
+                    transform: scale(1.02); 
+                    box-shadow: 
+                        0 0 80px rgba(255, 152, 0, 0.2),
+                        inset 0 0 80px rgba(33, 150, 243, 0.08);
+                }
+            }
+
+            /* Reduce animation intensity for better performance on mobile */
+            @media (max-width: 768px) {
+                body::before,
+                body::after {
+                    animation-duration: 50s;
+                }
+                
+                @keyframes subtleGradient {
+                    0%, 100% { background-position: 0% 50%; }
+                    50% { background-position: 50% 50%; }
+                }
+            }
+
+            /* Data flow lines for admin interface */
+            .data-line {
+                position: fixed;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.4), rgba(76, 175, 80, 0.3), transparent);
+                animation: dataLineSweep 15s linear infinite;
+                pointer-events: none;
+                z-index: -1;
+                opacity: 0.3;
+            }
+
+            .data-line:nth-child(4) {
+                top: 30%;
+                width: 200px;
+                animation-delay: 0s;
+                background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.5), rgba(33, 150, 243, 0.3), transparent);
+            }
+
+            .data-line:nth-child(5) {
+                bottom: 40%;
+                width: 180px;
+                animation-delay: 8s;
+                background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.4), rgba(255, 152, 0, 0.2), transparent);
+            }
+
+            @keyframes professionalFloat {
+                0%, 100% {
+                    transform: translateY(0px) translateX(0px) scale(1);
+                    opacity: 0.3;
+                }
+                25% {
+                    transform: translateY(-20px) translateX(15px) scale(1.1);
+                    opacity: 0.5;
+                }
+                50% {
+                    transform: translateY(-10px) translateX(-10px) scale(0.9);
+                    opacity: 0.2;
+                }
+                75% {
+                    transform: translateY(-30px) translateX(5px) scale(1.05);
+                    opacity: 0.4;
+                }
+            }
+
+            /* Car animation styles */
+            .moving-car-container {
+                position: fixed;
+                bottom: 15%;
+                left: -100px;
+                width: 80px;
+                height: 40px;
+                z-index: 0;
+                animation: driveCar 25s linear infinite;
+                pointer-events: none;
+                opacity: 0.3;
+            }
+
+            .car-body {
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #ff9800, #ffb74d);
+                border-radius: 8px 8px 0 0;
+                position: relative;
+                box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+            }
+
+            .car-wheel {
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                background: #333;
+                border-radius: 50%;
+                bottom: -8px;
+                border: 2px solid #222;
+            }
+
+            .car-wheel:first-of-type {
+                left: 12px;
+            }
+
+            .car-wheel:last-of-type {
+                right: 12px;
+            }
+
+            .car-window {
+                position: absolute;
+                background: rgba(100, 200, 255, 0.4);
+                border-radius: 4px;
+                top: 8px;
+                height: 12px;
+            }
+
+            .car-window:first-of-type {
+                left: 8px;
+                width: 20px;
+            }
+
+            .car-window:last-of-type {
+                right: 8px;
+                width: 18px;
+            }
+
+            @keyframes driveCar {
+                0% {
+                    left: -100px;
+                }
+                100% {
+                    left: 100vw;
+                }
+            }
+
+            /* Add multiple cars at different heights and speeds */
+            .moving-car-container:nth-child(6) {
+                bottom: 25%;
+                animation: driveCar 30s linear infinite;
+                animation-delay: 0s;
+                opacity: 0.25;
+            }
+
+            .moving-car-container:nth-child(7) {
+                bottom: 8%;
+                animation: driveCar 22s linear infinite;
+                animation-delay: 5s;
+                opacity: 0.35;
+            }
+
+            /* Bike animation styles */
+            .moving-bike-container {
+                position: fixed;
+                bottom: 20%;
+                left: -50px;
+                width: 50px;
+                height: 30px;
+                z-index: 0;
+                animation: rideBike 28s linear infinite;
+                pointer-events: none;
+                opacity: 0.28;
+            }
+
+            .bike-frame {
+                width: 100%;
+                height: 100%;
+                position: relative;
+            }
+
+            .bike-body {
+                position: absolute;
+                width: 35px;
+                height: 18px;
+                background: linear-gradient(135deg, #ff1744, #f50057);
+                border-radius: 4px;
+                top: 6px;
+                left: 5px;
+                box-shadow: 0 2px 4px rgba(255, 23, 68, 0.4);
+            }
+
+            .bike-wheel {
+                position: absolute;
+                width: 14px;
+                height: 14px;
+                background: #222;
+                border-radius: 50%;
+                border: 2px solid #111;
+                bottom: 0;
+            }
+
+            .bike-wheel:first-of-type {
+                left: 8px;
+            }
+
+            .bike-wheel:last-of-type {
+                right: 5px;
+            }
+
+            .bike-seat {
+                position: absolute;
+                width: 12px;
+                height: 2px;
+                background: #333;
+                top: 4px;
+                right: 8px;
+            }
+
+            .bike-handlebar {
+                position: absolute;
+                width: 8px;
+                height: 8px;
+                border: 1.5px solid #333;
+                border-radius: 50%;
+                top: 5px;
+                right: 3px;
+            }
+
+            @keyframes rideBike {
+                0% {
+                    left: -50px;
+                }
+                100% {
+                    left: 100vw;
+                }
+            }
+
+            /* Add multiple bikes at different heights and speeds */
+            .moving-bike-container:nth-child(9) {
+                bottom: 12%;
+                animation: rideBike 32s linear infinite;
+                animation-delay: 3s;
+                opacity: 0.22;
+            }
+
+            .moving-bike-container:nth-child(10) {
+                bottom: 28%;
+                animation: rideBike 26s linear infinite;
+                animation-delay: 8s;
+                opacity: 0.3;
+            }
+
+            /* Additional Beautiful Animations */
+            
+            /* Fade-in animation for page elements */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Fade-in from left */
+            @keyframes fadeInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            /* Fade-in from right */
+            @keyframes fadeInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            /* Smooth hover glow effect */
+            @keyframes glowPulse {
+                0%, 100% {
+                    box-shadow: 0 0 10px rgba(255, 152, 0, 0.3), inset 0 0 10px rgba(255, 152, 0, 0.1);
+                }
+                50% {
+                    box-shadow: 0 0 20px rgba(255, 152, 0, 0.6), inset 0 0 15px rgba(255, 152, 0, 0.2);
+                }
+            }
+
+            /* Button hover animation */
+            @keyframes buttonHoverGlow {
+                from {
+                    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+                    transform: translateY(0);
+                }
+                to {
+                    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.6);
+                    transform: translateY(-2px);
+                }
+            }
+
+            /* Shimmer loading effect */
+            @keyframes shimmer {
+                0% {
+                    background-position: -1000px 0;
+                }
+                100% {
+                    background-position: 1000px 0;
+                }
+            }
+
+            /* Pulse animation */
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.6;
+                }
+            }
+
+            /* Bounce animation */
+            @keyframes bounce {
+                0%, 100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-10px);
+                }
+            }
+
+            /* Rotate animation */
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Slide down animation */
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Scale animation */
+            @keyframes scaleIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            /* Apply animations to common elements */
+            .card, .card-dark {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            .btn, button {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .btn:hover, button:hover {
+                animation: buttonHoverGlow 0.3s ease-out forwards;
+            }
+
+            .btn-accent {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .btn-accent::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                transition: left 0.5s ease;
+            }
+
+            .btn-accent:hover::before {
+                left: 100%;
+            }
+
+            /* Card hover effects */
+            .card:hover, .card-dark:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(255, 152, 0, 0.25) !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Icon animations */
+            .icon, [class*="icon-"] {
+                display: inline-block;
+                transition: all 0.3s ease;
+            }
+
+            .icon:hover {
+                animation: rotate 0.6s ease-in-out;
+            }
+
+            /* Link animations */
+            a {
+                position: relative;
+                transition: color 0.3s ease;
+            }
+
+            a:not(.btn):not(.card-link)::after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                bottom: -2px;
+                left: 0;
+                background: linear-gradient(90deg, #ff9800, #ffb74d);
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            a:not(.btn):not(.card-link):hover::after {
+                width: 100%;
+            }
+
+            /* Badge animations */
+            .badge {
+                animation: slideDown 0.4s ease-out;
+            }
+
+            /* Table row hover animation */
+            table tbody tr {
+                transition: all 0.2s ease;
+            }
+
+            table tbody tr:hover {
+                background-color: rgba(255, 152, 0, 0.1) !important;
+                transform: scale(1.01);
+            }
+
+            /* Form input focus animation */
+            input:focus, textarea:focus, select:focus {
+                animation: glowPulse 1.5s ease-in-out infinite;
+            }
+
+            /* Tooltip animations */
+            [data-tooltip]:hover::after {
+                animation: fadeInUp 0.3s ease-out;
+            }
+
+            /* Navbar link animations */
+            .navbar-nav .nav-link {
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .navbar-nav .nav-link::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                width: 0;
+                height: 2px;
+                background: #ff9800;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transform: translateX(-50%);
+            }
+
+            .navbar-nav .nav-link:hover::before {
+                width: 100%;
+            }
+
+            /* Loading spinner animation */
+            .spinner, .spinner-border {
+                animation: rotate 1s linear infinite;
+            }
+
+            /* Success/Alert message animations */
+            .alert {
+                animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+
+            .alert-success {
+                background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.05));
+                border-left: 4px solid #4caf50;
+            }
+
+            .alert-danger {
+                background: linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(244, 67, 54, 0.05));
+                border-left: 4px solid #f44336;
+            }
+
+            .alert-warning {
+                background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.05));
+                border-left: 4px solid #ff9800;
+            }
+
+            .alert-info {
+                background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.05));
+                border-left: 4px solid #2196f3;
+            }
+
+            /* ensure alert text is readable on dark background */
+            .alert {
+                color: #fff;
+            }
+
+            /* Modal/Dialog animation */
+            .modal, .modal-dialog {
+                animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+
+            /* Navbar brand pulse on hover */
+            .navbar-brand {
+                transition: all 0.3s ease;
+            }
+
+            .navbar-brand:hover {
+                animation: pulse 1s ease-in-out;
+                color: #ffb74d !important;
+                text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+            }
+
+            /* Smooth page transitions */
+            * {
+                transition: background-color 0.3s ease, border-color 0.3s ease;
+            }
+
+            /* Performance optimization - reduce motion for users who prefer it */
+            @media (prefers-reduced-motion: reduce) {
+                body {
+                    animation: none;
+                }
+
+                body::before,
+                body::after,
+                main.container::before,
+                .admin-float-element,
+                .data-line,
+                .moving-car-container,
+                .moving-bike-container {
+                    animation: none;
+                }
+            }
+
+            /* User Sidebar Styles */
+            .user-sidebar {
+                position: fixed;
+                left: 0;
+                top: 60px; /* sit just below navbar */
+                bottom: 0;
+                width: 220px;
+                background: linear-gradient(135deg, #20242a 0%, #1a1d23 100%);
+                padding: 2rem 1rem 1rem 1rem; /* reduce top padding now navbar space provides offset */
+                display: flex;
+                flex-direction: column;
+                gap: 1.2rem;
+                z-index: 100;
+                border-right: 2px solid rgba(255, 152, 0, 0.2);
+                overflow-y: auto;
+                animation: slideInLeft 0.5s ease-out;
+                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+            }
+
+            @keyframes slideInLeft {
+                from {
+                    transform: translateX(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .user-sidebar .sidebar-logo {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #ff9800;
+                margin-bottom: 2.5rem;
+                letter-spacing: 2px;
+                padding: 0.75rem 0.5rem;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 152, 0, 0.3);
+                animation: fadeInDown 0.6s ease-out;
+            }
+
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .user-sidebar .sidebar-link {
+                color: #fff;
+                font-weight: 500;
+                border-radius: 8px;
+                padding: 0.9rem 1rem;
+                margin-bottom: 0.3rem;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                border: 1px solid transparent;
+                position: relative;
+                overflow: hidden;
+                animation: fadeInLeft 0.4s ease-out backwards;
+            }
+
+            .user-sidebar .sidebar-link:nth-child(2) { animation-delay: 0.1s; }
+            .user-sidebar .sidebar-link:nth-child(3) { animation-delay: 0.2s; }
+            .user-sidebar .sidebar-link:nth-child(4) { animation-delay: 0.3s; }
+            .user-sidebar .sidebar-link:nth-child(5) { animation-delay: 0.4s; }
+            .user-sidebar .sidebar-link:nth-child(6) { animation-delay: 0.5s; }
+            .user-sidebar .sidebar-link:nth-child(7) { animation-delay: 0.6s; }
+
+            @keyframes fadeInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            .user-sidebar .sidebar-link::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.05);
+                transition: left 0.3s ease;
+                z-index: -1;
+            }
+
+            .user-sidebar .sidebar-link:hover::before {
+                left: 0;
+            }
+
+            .user-sidebar .sidebar-link:hover,
+            .user-sidebar .sidebar-link.active {
+                background: linear-gradient(135deg, #ff9800, #ffa726);
+                color: #181c20;
+                border-color: #ffb74d;
+                transform: translateX(5px);
+                box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            }
+
+            .user-sidebar .sidebar-link i {
+                font-size: 1.3rem;
+                display: flex;
+                align-items: center;
+            }
+
+            .user-sidebar .sidebar-section {
+                margin-top: 2.5rem;
+                margin-bottom: 1rem;
+                font-size: 0.8rem;
+                color: #ff9800;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                padding-left: 0.5rem;
+                font-weight: 700;
+                border-left: 3px solid #ff9800;
+                padding-left: 1rem;
+                animation: fadeInLeft 0.4s ease-out backwards 0.7s;
+            }
+
+            .sidebar-with-margin {
+                margin-left: 240px;
+                transition: margin-left 0.3s ease;
+            }
+
+            /* Hide sidebar on mobile */
+            @media (max-width: 992px) {
+                .user-sidebar {
+                    position: fixed;
+                    left: -240px;
+                    transition: left 0.3s ease;
+                    z-index: 1050;
+                    box-shadow: none;
+                }
+
+                .user-sidebar.show {
+                    left: 0;
+                    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
+                }
+
+                .sidebar-with-margin {
+                    margin-left: 0;
+                }
+
+                .sidebar-toggle {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0.5rem 0.75rem;
+                    margin-left: 0.5rem;
+                    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+                    border: 2px solid rgba(255, 152, 0, 0.4);
+                    border-radius: 6px;
+                    color: #ff9800;
+                    cursor: pointer;
+                    font-size: 1.3rem;
+                    transition: all 0.3s ease;
+                }
+
+                .sidebar-toggle:hover {
+                    background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
+                    border-color: #ff9800;
+                    transform: scale(1.05);
+                }
+
+                main.container {
+                    margin-left: 15px !important;
+                    margin-right: 15px !important;
+                }
+            }
+
+            @media (min-width: 993px) {
+                .sidebar-toggle {
+                    display: none;
+                }
+
+                main.sidebar-with-margin {
+                    margin-left: 240px;
+                    max-width: calc(100% - 240px);
+                }
+            }
+
+            /* Main content animation */
+            main.container {
+                animation: fadeInUp 0.6s ease-out;
+                position: relative;
+                z-index: 1;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Content card animations */
+            .container > * {
+                animation: fadeInUp 0.6s ease-out backwards;
+            }
+
+            .container > *:nth-child(1) { animation-delay: 0.1s; }
+            .container > *:nth-child(2) { animation-delay: 0.2s; }
+            .container > *:nth-child(3) { animation-delay: 0.3s; }
+            .container > *:nth-child(4) { animation-delay: 0.4s; }
+
+            /* Car Animation Styles for Notifications */
+            .car-notification {
+                position: fixed;
+                top: 20px;
+                right: -400px; /* Start off-screen */
+                z-index: 9999;
+                width: 350px;
+                height: 80px;
+                background: linear-gradient(135deg, #ff9800, #ffb74d);
+                border-radius: 15px;
+                box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+                display: flex;
+                align-items: center;
+                padding: 0 20px;
+                font-weight: 600;
+                color: #181c20;
+                border: 3px solid #fff;
+                animation: driveIn 0.8s ease-out forwards, bounce 0.3s ease-in-out 0.8s;
+                overflow: hidden;
+            }
+
+            .car-notification.success {
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+            }
+
+            .car-notification.danger {
+                background: linear-gradient(135deg, #f44336, #ef5350);
+                box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+            }
+
+            .car-notification.warning {
+                background: linear-gradient(135deg, #ff9800, #ffb74d);
+                box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+            }
+
+            .car-notification.info {
+                background: linear-gradient(135deg, #2196f3, #64b5f6);
+                box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+            }
+
+            .car-body {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .car-icon {
+                font-size: 2rem;
+                animation: carShake 0.5s ease-in-out infinite alternate;
+            }
+
+            .car-message {
+                flex: 1;
+                font-size: 0.9rem;
+                line-height: 1.2;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .car-wheels {
+                position: relative;
+                width: 30px;
+                height: 30px;
+            }
+
+            .wheel {
+                position: absolute;
+                width: 12px;
+                height: 12px;
+                background: #333;
+                border-radius: 50%;
+                border: 2px solid #666;
+                bottom: 0;
+            }
+
+            .wheel.left {
+                left: 0;
+                animation: spinWheel 2s linear infinite;
+            }
+
+            .wheel.right {
+                right: 0;
+                animation: spinWheel 2s linear infinite reverse;
+            }
+
+            .car-notification.driving-out {
+                animation: driveOut 0.8s ease-in forwards;
+            }
+
+            @keyframes driveIn {
+                0% {
+                    right: -400px;
+                    transform: rotate(-5deg);
+                }
+                50% {
+                    transform: rotate(2deg);
+                }
+                100% {
+                    right: 20px;
+                    transform: rotate(0deg);
+                }
+            }
+
+            @keyframes driveOut {
+                0% {
+                    right: 20px;
+                    transform: rotate(0deg);
+                }
+                50% {
+                    transform: rotate(-3deg);
+                }
+                100% {
+                    right: -400px;
+                    transform: rotate(5deg);
+                }
+            }
+
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
+
+            @keyframes spinWheel {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            @keyframes carShake {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(2px); }
+            }
+        </style>
+</head>
+<body class="bg-dark text-light">
+    <!-- Professional admin background elements -->
+    <div class="admin-float-element"></div>
+    <div class="admin-float-element"></div>
+    <div class="admin-float-element"></div>
+    <div class="data-line"></div>
+    <div class="data-line"></div>
+
+    <!-- Moving cars in background -->
+    <div class="moving-car-container">
+        <div class="car-body">
+            <div class="car-window"></div>
+            <div class="car-window"></div>
+            <div class="car-wheel"></div>
+            <div class="car-wheel"></div>
+        </div>
+    </div>
+    <div class="moving-car-container">
+        <div class="car-body">
+            <div class="car-window"></div>
+            <div class="car-window"></div>
+            <div class="car-wheel"></div>
+            <div class="car-wheel"></div>
+        </div>
+    </div>
+    <div class="moving-car-container">
+        <div class="car-body">
+            <div class="car-window"></div>
+            <div class="car-window"></div>
+            <div class="car-wheel"></div>
+            <div class="car-wheel"></div>
+        </div>
+    </div>
+
+    <!-- Moving bikes in background -->
+    <div class="moving-bike-container">
+        <div class="bike-frame">
+            <div class="bike-body"></div>
+            <div class="bike-seat"></div>
+            <div class="bike-handlebar"></div>
+            <div class="bike-wheel"></div>
+            <div class="bike-wheel"></div>
+        </div>
+    </div>
+    <div class="moving-bike-container">
+        <div class="bike-frame">
+            <div class="bike-body"></div>
+            <div class="bike-seat"></div>
+            <div class="bike-handlebar"></div>
+            <div class="bike-wheel"></div>
+            <div class="bike-wheel"></div>
+        </div>
+    </div>
+    <div class="moving-bike-container">
+        <div class="bike-frame">
+            <div class="bike-body"></div>
+            <div class="bike-seat"></div>
+            <div class="bike-handlebar"></div>
+            <div class="bike-wheel"></div>
+            <div class="bike-wheel"></div>
+        </div>
+    </div>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom" style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); animation: slideDown 0.5s ease-out;">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/" style="animation: fadeInLeft 0.4s ease-out;">
+            <span class="badge bg-warning me-2">🚗</span>
+            WHEELSHARE
+        </a>
+        {% if session.user_id and session.get('role') != 'admin' %}
+        <button class="sidebar-toggle" id="sidebar-toggle-mobile" title="Menu" style="animation: fadeInRight 0.4s ease-out;">☰</button>
+        {% endif %}
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navmenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <!-- live date/time display -->
+                <li class="nav-item"><span class="nav-link navbar-text" id="live-clock"></span></li>
+                {% if session.user_id %}
+                    <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/vehicles">
+                            Browse Vehicles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/bookings">
+                            My Bookings 
+                            <span class="badge bg-warning ms-1" id="booking-count">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item profile-dropdown">
+                        <a class="profile-toggle" onclick="toggleProfileMenu(event)">
+                            <div class="profile-avatar" id="profile-initial">👤</div>
+                            <span class="d-none d-sm-inline" id="profile-username">Profile</span>
+                        </a>
+                        <div class="profile-menu" id="profile-menu">
+                            <div class="profile-menu-header">
+                                <div class="profile-menu-username" id="menu-username">User</div>
+                                <div class="profile-menu-email" id="menu-email">user@example.com</div>
+                            </div>
+                            <a href="/profile" class="profile-menu-item">
+                                <span class="profile-menu-item-icon">👤</span>
+                                <span>View Profile</span>
+                            </a>
+                            <a href="/profile/edit" class="profile-menu-item">
+                                <span class="profile-menu-item-icon">✏️</span>
+                                <span>Edit Profile</span>
+                            </a>
+                            <a href="/logout" class="profile-menu-item logout">
+                                <span class="profile-menu-item-icon">🚪</span>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </li>
+                {% else %}
+                    <!-- Intentionally hide Login/Register from header as requested -->
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- User Sidebar (only for non-admin users) -->
+{% if session.user_id and session.get('role') != 'admin' %}
+<div class="user-sidebar" id="user-sidebar">
+    <div class="sidebar-logo">⚙️ QUICK MENU</div>
+    
+    <a href="/dashboard" class="sidebar-link">
+        <span>📊</span>
+        <span>Dashboard</span>
+    </a>
+    
+    <a href="/vehicles" class="sidebar-link">
+        <span>🚗</span>
+        <span>Browse Vehicles</span>
+    </a>
+    
+    <a href="/bookings" class="sidebar-link">
+        <span>📅</span>
+        <span>My Bookings</span>
+    </a>
+    
+    <a href="/subscriptions" class="sidebar-link">
+        <span>⭐</span>
+        <span>Subscriptions</span>
+    </a>
+    
+    <a href="/payment-history" class="sidebar-link">
+        <span>💳</span>
+        <span>Payments</span>
+    </a>
+    
+    <a href="/feedback" class="sidebar-link">
+        <span>💬</span>
+        <span>Give Feedback</span>
+    </a>
+    
+    <!-- penalties link added per user request -->
+    <a href="/user/penalties" class="sidebar-link {% if request.path == '/user/penalties' %}active{% endif %}">
+        <span>⚠️</span>
+        <span>Penalties</span>
+    </a>
+
+    <div class="sidebar-section">Account</div>
+    
+    <a href="/profile" class="sidebar-link">
+        <span>👤</span>
+        <span>My Profile</span>
+    </a>
+    
+    <a href="/profile/edit" class="sidebar-link">
+        <span>✏️</span>
+        <span>Edit Profile</span>
+    </a>
+    
+    <a href="/logout" class="sidebar-link" style="color: #f44336;">
+        <span>🚪</span>
+        <span>Logout</span>
+    </a>
+</div>
+{% endif %}
+
+<main class="container my-4 {% if session.user_id and session.get('role') != 'admin' %}sidebar-with-margin{% endif %}">
+    <!-- shared notification container for JS messages -->
+    <div id="notificationArea"></div>
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Toast container for flash messages -->
+<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <div class="toast align-items-center text-bg-dark border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                {{ msg }}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Toggle sidebar on mobile
+    const sidebarToggle = document.getElementById('sidebar-toggle-mobile');
+    const userSidebar = document.getElementById('user-sidebar');
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            userSidebar.classList.toggle('show');
+        });
+    }
+
+    // Close sidebar when clicking a link
+    if (userSidebar) {
+        const sidebarLinks = userSidebar.querySelectorAll('.sidebar-link');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 993) {
+                    userSidebar.classList.remove('show');
+                }
+            });
+        });
+    }
+
+    // Close sidebar when clicking outside
+    document.addEventListener('click', function(event) {
+        if (userSidebar && !userSidebar.contains(event.target) && 
+            (!sidebarToggle || !sidebarToggle.contains(event.target))) {
+            userSidebar.classList.remove('show');
+        }
+    });
+
+    // Highlight active sidebar link
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const sidebarLinks = document.querySelectorAll('.user-sidebar .sidebar-link');
+        
+        sidebarLinks.forEach(link => {
+            const linkPath = new URL(link.href).pathname;
+            if (currentPath === linkPath || currentPath.startsWith(linkPath + '/')) {
+                link.classList.add('active');
+            }
+        });
+    });
+
+    // Toggle profile dropdown menu
+
+    // live clock updater
+    function updateClock() {
+        const el = document.getElementById('live-clock');
+        if (!el) return;
+        const now = new Date();
+        // format: 25 Feb 2026 14:05:23
+        el.textContent = now.toLocaleString();
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        updateClock();
+        setInterval(updateClock, 1000);
+    });
+    function toggleProfileMenu(event) {
+        event.preventDefault();
+        const menu = document.getElementById('profile-menu');
+        menu.classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.querySelector('.profile-dropdown');
+        if (dropdown && !dropdown.contains(event.target)) {
+            document.getElementById('profile-menu').classList.remove('show');
+        }
+    });
+
+    // Load user profile info
+    function loadProfileInfo() {
+        fetch('/api/user-profile', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.user) {
+                    const user = data.user;
+                    // Get first letter of username for avatar
+                    const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
+                    document.getElementById('profile-initial').textContent = initial;
+                    document.getElementById('profile-username').textContent = user.username || 'Profile';
+                    document.getElementById('menu-username').textContent = user.username || 'User';
+                    document.getElementById('menu-email').textContent = user.email || 'user@example.com';
+                }
+            })
+            .catch(err => console.error('Error loading profile:', err));
+    }
+
+    // Initialize and show all toasts created by flashes
+    document.addEventListener('DOMContentLoaded', function () {
+        loadProfileInfo();
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            var t = new bootstrap.Toast(toastEl)
+            t.show()
+            return t
+        })
+    })
+
+    // Dynamic count updates
+    function updateCounts() {
+        // Update booking count
+        fetch('/api/bookings', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                const count = data.bookings ? data.bookings.length : 0;
+                const bookingBadge = document.getElementById('booking-count');
+                if (bookingBadge) {
+                    bookingBadge.textContent = count;
+                    bookingBadge.style.display = count > 0 ? 'inline' : 'none';
+                }
+            })
+            .catch(err => console.error('Error updating booking count:', err));
+    }
+
+    // Update counts on page load and every 30 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCounts();
+        setInterval(updateCounts, 30000); // Update every 30 seconds
+    });
+
+    // helper available globally for pages that need non-blocking notifications
+    function showNotification(message, category='info') {
+        const carHTML = `
+          <div class="car-notification ${category}" id="car-notification">
+            <div class="car-body">
+              <div class="car-icon">🚗</div>
+              <div class="car-message">${message}</div>
+            </div>
+            <div class="car-wheels">
+              <div class="wheel left"></div>
+              <div class="wheel right"></div>
+            </div>
+          </div>
+        `;
+
+        // Remove any existing car notification
+        const existingCar = document.getElementById('car-notification');
+        if (existingCar) {
+            existingCar.remove();
+        }
+
+        const container = document.createElement('div');
+        container.innerHTML = carHTML;
+        document.body.appendChild(container.firstElementChild);
+
+        // Auto-remove after 4 seconds with driving out animation
+        setTimeout(() => {
+            const car = document.getElementById('car-notification');
+            if (car) {
+                car.classList.add('driving-out');
+                setTimeout(() => {
+                    if (car.parentNode) car.remove();
+                }, 800); // Wait for driveOut animation to complete
+            }
+        }, 4000);
+    }
+</script>
+</body>
+</html>
+
+<!-- Footer -->
+<footer class="site-footer mt-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="small">&copy; {{ config.SITE_NAME if config and config.SITE_NAME else 'WheelShare' }} {{ now().year if now is defined else '' }}. All rights reserved.</div>
+                <div class="small muted">Contact: 8778408795 &nbsp;|&nbsp; support@wheelshare.example</div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="social-icons">
+                    <a href="https://instagram.com/lily_saras1" target="_blank" title="Instagram">
+                        <!-- Instagram SVG -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 6.5A4.5 4.5 0 1016.5 13 4.5 4.5 0 0012 8.5zm5.25-.75a1.125 1.125 0 11-1.125-1.125A1.125 1.125 0 0117.25 7.75zM12 10.5A1.5 1.5 0 1110.5 12 1.5 1.5 0 0112 10.5z"/></svg>
+                    </a>
+                    <a href="https://wa.me/8778408795" target="_blank" title="WhatsApp">
+                        <!-- WhatsApp SVG -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20.52 3.478A11.94 11.94 0 0012 0C5.373 0 .001 5.373 0 12c0 2.105.55 4.165 1.596 5.982L0 24l6.252-1.624A11.966 11.966 0 0012 24c6.627 0 12-5.373 12-12 0-1.995-.482-3.87-1.48-5.522zM12 21.5c-1.487 0-2.948-.392-4.227-1.135l-.302-.179-3.712.964.992-3.614-.196-.33A9.5 9.5 0 012.5 12 9.5 9.5 0 1112 21.5z"/></svg>
+                    </a>
+                    <a href="https://facebook.com/lily_saras1" target="_blank" title="Facebook">
+                        <!-- Facebook SVG -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.2V12h2.2V9.8c0-2.2 1.3-3.4 3.3-3.4.96 0 1.97.17 1.97.17v2.2h-1.12c-1.1 0-1.44.68-1.44 1.38V12h2.46l-.39 2.9h-2.07v7A10 10 0 0022 12z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

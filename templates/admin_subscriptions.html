@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Plans - WheelShare Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+      body { 
+        background: #0f1115; 
+        color: #fff; 
+        min-height: 100vh; 
+        margin: 0; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem 1rem 2.5rem;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+      }
+      .form-control, .form-select, textarea {
+        background: #1a1d20 !important;
+        border: 1px solid rgba(255, 152, 0, 0.2) !important;
+        color: #e6eef6 !important;
+      }
+      .form-control:focus, .form-select:focus, textarea:focus {
+        background: #1a1d20 !important;
+        border-color: #ff9800 !important;
+        color: #fff !important;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.2);
+      }
+      .form-label {
+        color: #ff9800;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .table-dark {
+        background: #23272b;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .table-dark thead {
+        background: #20242a;
+      }
+      .table-dark tbody tr {
+        border-color: rgba(255, 152, 0, 0.1);
+      }
+      .table-dark tbody tr:hover {
+        background: rgba(255, 152, 0, 0.05);
+      }
+      .btn-primary {
+        background: #2196f3;
+        border: none;
+        padding: 0.6rem 1.5rem;
+      }
+      .btn-primary:hover {
+        background: #1976d2;
+      }
+      .btn-outline-light {
+        color: #fff;
+        border-color: #fff;
+      }
+      .btn-outline-light:hover {
+        background: #ff9800;
+        border-color: #ff9800;
+        color: #181c20;
+      }
+      .btn-outline-primary {
+        color: #2196f3;
+        border-color: #2196f3;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      .btn-outline-danger {
+        color: #f44336;
+        border-color: #f44336;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      .form-check-input {
+        background: #1a1d20;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+      }
+      .form-check-input:checked {
+        background: #ff9800;
+        border-color: #ff9800;
+      }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/bookings">Bookings</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link active" href="/admin/subscriptions">Manage Plans</a>
+        <a class="nav-link" href="/admin/subscriptions/users">User Subscriptions</a>
+    </div>
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">Manage Subscription Plans</div>
+            <div><a href="/logout" class="btn btn-outline-light btn-sm">Logout</a></div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card-dark">
+                    <h5 class="mb-3" style="color: #ff9800;">{{ 'Edit Plan' if edit_plan else 'Create New Plan' }}</h5>
+                    <form method="POST" action="/admin/subscriptions">
+                        <input type="hidden" name="id" value="{{ edit_plan.id if edit_plan else '' }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                   value="{{ edit_plan.name if edit_plan else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required>{{ edit_plan.description if edit_plan else '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price per month</label>
+                            <input type="number" step="0.01" class="form-control" id="price" name="price" required
+                                   value="{{ edit_plan.price_per_month if edit_plan else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount" class="form-label">Discount percent</label>
+                            <input type="number" step="0.01" class="form-control" id="discount" name="discount"
+                                   value="{{ edit_plan.discount_percent if edit_plan else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="limit" class="form-label">Rental limit per month (0 for unlimited)</label>
+                            <input type="number" class="form-control" id="limit" name="limit"
+                                   value="{{ edit_plan.rental_limit_per_month if edit_plan else '' }}">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="priority" name="priority"
+                                   {% if edit_plan and edit_plan.priority_booking %}checked{% endif %}>
+                            <label class="form-check-label" for="priority">Priority booking</label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="free_cancel" class="form-label">Free cancellation hours</label>
+                            <input type="number" class="form-control" id="free_cancel" name="free_cancel" required
+                                   value="{{ edit_plan.free_cancellation_hours if edit_plan else '' }}">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                   {% if edit_plan and edit_plan.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Active</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">{{ 'Update' if edit_plan else 'Create' }} Plan</button>
+                        {% if edit_plan %}
+                            <a href="/admin/subscriptions" class="btn btn-secondary ms-2">Cancel</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card-dark">
+                    <h5 style="color: #ff9800;">Existing Plans</h5>
+                    <div class="table-responsive mt-3">
+                        <table class="table table-dark table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th>Discount</th>
+                                    <th>Limit</th>
+                                    <th>Priority</th>
+                                    <th>Cancel Hours</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in plans %}
+                                <tr>
+                                    <td>{{ plan.name }}</td>
+                                    <td>₹{{ plan.price_per_month }}</td>
+                                    <td>{{ plan.discount_percent }}%</td>
+                                    <td>{{ plan.rental_limit_per_month or 'Unlimited' }}</td>
+                                    <td>{{ 'Yes' if plan.priority_booking else 'No' }}</td>
+                                    <td>{{ plan.free_cancellation_hours }}</td>
+                                    <td>{{ 'Active' if plan.is_active else 'Inactive' }}</td>
+                                    <td>
+                                        <a href="/admin/subscriptions/edit/{{ plan.id }}" class="btn btn-outline-primary">Edit</a>
+                                        <a href="/admin/subscriptions/delete/{{ plan.id }}" class="btn btn-outline-danger" onclick="return confirm('Delete this plan?');">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

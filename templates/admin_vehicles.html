@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Management - WheelShare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Static dark background for admin panel */
+        body {
+            background: #0f1115;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+      /* Remove static background to allow animated background from base.html */
+      body { color: #fff; min-height: 100vh; }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem 1rem 2.5rem;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .stats-cards {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .stats-card {
+        background: #23272b;
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        flex: 1;
+        min-width: 200px;
+        box-shadow: 0 0 12px #ff980040;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .stats-card .label { color: #aaa; font-size: 1rem; }
+      .stats-card .value { font-size: 2rem; font-weight: 700; color: #ff9800; }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 0 12px #ff980040;
+        padding: 1.5rem;
+      }
+      .search-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .search-filters input, .search-filters select {
+        background: #20242a;
+        border: 1px solid #23272b;
+        color: #fff;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+      }
+      .search-filters input::placeholder {
+        color: #aaa;
+      }
+      .vehicle-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.2rem;
+        background: #20242a;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #23272b;
+      }
+      .vehicle-img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        box-shadow: 0 0 8px #ff980060;
+      }
+      .vehicle-info {
+        flex: 1;
+      }
+      .vehicle-info .name {
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      .vehicle-info .meta {
+        color: #aaa;
+        font-size: 0.9rem;
+      }
+      .badge {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+      }
+      .vehicle-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      @media (max-width: 1100px) {
+        .main-content { margin-left: 0; padding: 1rem; }
+        .sidebar { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid #23272b; }
+      }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link active" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+    </div>
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">Vehicle Management</div>
+            <div>
+                <a href="/add-vehicle" class="btn btn-warning">+ Add Vehicle</a>
+                <a href="/logout" class="btn btn-outline-light btn-sm ms-2">Logout</a>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-cards" id="vehicle-stats">
+            <div class="stats-card">
+                <div class="label">Total Vehicles</div>
+                <div class="value" id="total-vehicles">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Available</div>
+                <div class="value" id="available-vehicles">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Reserved</div>
+                <div class="value" id="booked-vehicles">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Rented</div>
+                <div class="value" id="rented-vehicles">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Maintenance</div>
+                <div class="value" id="maintenance-vehicles">...</div>
+            </div>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="card-dark">
+            <div class="search-filters">
+                <input type="text" id="search-box" placeholder="Search by name, brand, or vehicle number..." style="flex: 1; min-width: 250px;">
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="Car">Car</option>
+                    <option value="Bike">Bike</option>
+                </select>
+                <select id="availability-filter">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Rented">Rented</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Vehicle List -->
+        <div class="card-dark mt-3">
+            <div class="fw-bold mb-3">Vehicle Inventory</div>
+            <div id="vehicles-list">
+                <div class="text-center text-muted py-4">Loading vehicles...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      // Load vehicle stats
+      function loadVehicleStats() {
+        fetch('/admin/vehicle-stats', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('total-vehicles').textContent = data.total_vehicles;
+            document.getElementById('available-vehicles').textContent = data.available_vehicles;
+            document.getElementById('booked-vehicles').textContent = data.booked_vehicles;
+            document.getElementById('rented-vehicles').textContent = data.rented_vehicles;
+            document.getElementById('maintenance-vehicles').textContent = data.maintenance_vehicles;
+          })
+          .catch(err => console.error('Error fetching vehicle stats:', err));
+      }
+
+      // Load vehicles list
+      function loadVehicles() {
+        const search = document.getElementById('search-box').value;
+        const category = document.getElementById('category-filter').value;
+        const availability = document.getElementById('availability-filter').value;
+        
+        let url = `/admin/vehicles-list?`;
+        if (search) url += `search=${encodeURIComponent(search)}&`;
+        if (category) url += `category=${category}&`;
+        if (availability) url += `availability=${availability}&`;
+        
+        fetch(url, { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            const container = document.getElementById('vehicles-list');
+            
+            if (data.vehicles.length === 0) {
+              container.innerHTML = '<div class="text-center text-muted py-4">No vehicles found</div>';
+              return;
+            }
+            
+            let html = '';
+            data.vehicles.forEach(v => {
+              // both "Booked" and "Rented" mean the vehicle is reserved, show them in warning color
+              const statusColor = v.availability_status === 'Available' ? 'bg-success' : 
+                                 (v.availability_status === 'Rented' || v.availability_status === 'Booked') ? 'bg-warning' : 'bg-danger';
+              const statusBadge = `<span class="badge ${statusColor} px-2 py-1" style="font-size: 11px;">${v.availability_status}</span>`;
+              
+              // Create status action buttons based on current status
+              let statusButtons = '';
+              if (v.availability_status !== 'Maintenance') {
+                statusButtons += `<button class="btn btn-warning btn-sm" onclick="changeVehicleStatusDynamic(${v.id}, 'Maintenance')" title="Move to Maintenance">
+                  <i class="fas fa-wrench"></i> Maintenance
+                </button> `;
+              } else {
+                statusButtons += `<button class="btn btn-success btn-sm" onclick="changeVehicleStatusDynamic(${v.id}, 'Available')" title="Return to Available">
+                  <i class="fas fa-check"></i> Available
+                </button> `;
+              }
+              
+              html += `
+                <div class="vehicle-row">
+                  <img src="{{ url_for('static', filename='uploads/') }}${v.image}" class="vehicle-img" alt="${v.name}">
+                  <div class="vehicle-info">
+                    <div class="name">${v.name || v.brand} ${v.subscription_only ? '<span title="Subscription only">👑</span>' : ''}</div>
+                    <div class="meta">
+                      ${v.location ? v.location + ' • ' : ''}${v.category} • ${v.vehicle_number} • ₹${v.price_per_day}/day
+                      ${v.fuel_type ? '• ' + v.fuel_type : ''}
+                      ${v.seating_capacity ? '• ' + v.seating_capacity + ' seater' : ''}
+                      ${v.subscription_only ? ' • SUB_ONLY' : ''}
+                    </div>
+                    <div style="margin-top: 8px;">
+                      ${statusBadge}
+                    </div>
+                  </div>
+                  <div class="vehicle-actions">
+                    ${statusButtons}
+                    <a href="/admin/vehicle/${v.id}/edit" class="btn btn-outline-light btn-sm">Edit</a>
+                    <form method="post" action="/admin/vehicle/${v.id}/delete" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this vehicle?')">Delete</button>
+                    </form>
+                  </div>
+                </div>
+              `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Reload stats after vehicles are loaded
+            loadVehicleStats();
+          })
+          .catch(err => {
+            console.error('Error loading vehicles:', err);
+            showNotification('Unable to load vehicle list', 'danger');
+            document.getElementById('vehicles-list').innerHTML = '';
+          });
+      }
+
+      // Change vehicle status
+      function changeVehicleStatus(vehicleId, newStatus) {
+        fetch(`/api/admin/vehicle-update/${vehicleId}`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ availability_status: newStatus })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Vehicle status updated to:', newStatus);
+            loadVehicles(); // Reload list
+            loadVehicleStats(); // Reload stats
+          } else {
+            showNotification('Error updating vehicle status', 'danger');
+            loadVehicles(); // Reload to reset dropdown
+          }
+        })
+        .catch(err => {
+          console.error('Error updating vehicle:', err);
+          showNotification('Error updating vehicle status', 'danger');
+          loadVehicles(); // Reload to reset dropdown
+        });
+      }
+
+      // Dynamic status change function with visual feedback
+      function changeVehicleStatusDynamic(vehicleId, newStatus) {
+        // Show loading state on the button
+        const button = event.target.closest('button');
+        if (button) {
+          button.disabled = true;
+          const originalText = button.innerHTML;
+          button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+          
+          fetch(`/api/admin/vehicle-update/${vehicleId}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ availability_status: newStatus })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              // Show success feedback
+              button.innerHTML = '<i class="fas fa-check"></i> Updated!';
+              button.classList.add('btn-success');
+              button.classList.remove('btn-warning');
+              setTimeout(() => {
+                loadVehicles(); // Reload list
+                loadVehicleStats(); // Reload stats
+              }, 500);
+            } else {
+              showNotification('Error: ' + (data.error || 'Could not update vehicle status'), 'danger');
+              button.innerHTML = originalText;
+              button.disabled = false;
+            }
+          })
+          .catch(err => {
+            console.error('Error updating vehicle:', err);
+            showNotification('Error updating vehicle status', 'danger');
+            button.innerHTML = originalText;
+            button.disabled = false;
+          });
+        }
+      }
+
+      // Event listeners for filters
+      document.getElementById('search-box').addEventListener('input', loadVehicles);
+      document.getElementById('category-filter').addEventListener('change', loadVehicles);
+      document.getElementById('availability-filter').addEventListener('change', loadVehicles);
+
+      // Load data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadVehicleStats();
+        loadVehicles();
+        // Refresh every 10 seconds for real-time updates
+        setInterval(() => {
+          loadVehicleStats();
+          loadVehicles();
+        }, 10000);
+      });
+
+      // Add focus listener to refresh when user returns to tab
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          loadVehicleStats();
+          loadVehicles();
+        }
+      });
+    </script>
+</body>
+</html>

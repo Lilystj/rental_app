@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - WheelShare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Static dark background for admin panel */
+        body {
+            background: #0f1115;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+      /* Remove static background to allow animated background from base.html */
+      body { color: #fff; min-height: 100vh; }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem 1rem 2.5rem;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .stats-cards {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .stats-card {
+        background: #23272b;
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        flex: 1;
+        min-width: 200px;
+        box-shadow: 0 0 12px #ff980040;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .stats-card .label { color: #aaa; font-size: 1rem; }
+      .stats-card .value { font-size: 2rem; font-weight: 700; color: #ff9800; }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        box-shadow: 0 0 12px #ff980040;
+        padding: 1.5rem;
+      }
+      .search-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .search-filters input, .search-filters select {
+        background: #20242a;
+        border: 1px solid #23272b;
+        color: #fff;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+      }
+      .search-filters input::placeholder {
+        color: #aaa;
+      }
+      .user-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.2rem;
+        background: #20242a;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #23272b;
+      }
+      .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #ff9800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #181c20;
+      }
+      .user-info {
+        flex: 1;
+      }
+      .user-info .name {
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      .user-info .meta {
+        color: #aaa;
+        font-size: 0.9rem;
+      }
+      .badge {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+      }
+      .user-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      .table-responsive {
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      @media (max-width: 1100px) {
+        .main-content { margin-left: 0; padding: 1rem; }
+        .sidebar { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid #23272b; }
+      }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link active" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+    </div>
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">User Management</div>
+            <div>
+                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stats-card">
+                <div class="label">Total Users</div>
+                <div class="value" id="total-users">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Active Users</div>
+                <div class="value" id="active-users">...</div>
+            </div>
+            <div class="stats-card">
+                <div class="label">Blocked Users</div>
+                <div class="value" id="blocked-users">...</div>
+            </div>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="card-dark">
+            <div class="search-filters">
+                <input type="text" id="search-box" placeholder="Search by username, email, or phone..." style="flex: 1; min-width: 250px;">
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Blocked">Blocked</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card-dark mt-3">
+            <div class="fw-bold mb-3">Users List</div>
+            <div class="table-responsive">
+                <table class="table table-dark table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Age</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Joined</th>
+                            <th>Bookings</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      // Load user stats
+      function loadUserStats() {
+        fetch('/admin/user-stats', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('total-users').textContent = data.total_users;
+            document.getElementById('active-users').textContent = data.active_users;
+            document.getElementById('blocked-users').textContent = data.blocked_users;
+          })
+          .catch(err => console.error('Error fetching user stats:', err));
+      }
+
+      // Load users list
+      function loadUsers() {
+        const search = document.getElementById('search-box').value;
+        const status = document.getElementById('status-filter').value;
+        
+        let url = `/admin/users-list?`;
+        if (search) url += `search=${encodeURIComponent(search)}&`;
+        if (status) url += `status=${status}&`;
+        
+        fetch(url, { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            const tbody = document.getElementById('users-tbody');
+            
+            if (data.users.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No users found</td></tr>';
+            }
+            
+            let html = '';
+            data.users.forEach(u => {
+              const statusClass = u.status === 'Active' ? 'bg-success' : 'bg-danger';
+              const initials = u.username.substring(0, 2).toUpperCase();
+              html += `
+                <tr>
+                  <td><strong>${u.username}</strong></td>
+                  <td>${u.email || '-'}</td>
+                  <td>${u.age || '-'}</td>
+                  <td>${u.phone || '-'}</td>
+                  <td>${u.address || '-'}</td>
+                  <td>${u.registration_date || '-'}</td>
+                  <td><span class="badge bg-info">${u.total_bookings}</span></td>
+                  <td><span class="badge ${statusClass}">${u.status}</span></td>
+                  <td>
+                    <button class="btn btn-outline-light btn-sm me-1" onclick="toggleUserStatus(${u.id})">
+                      ${u.status === 'Active' ? 'Block' : 'Unblock'}
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Delete</button>
+                  </td>
+                </tr>
+              `;
+            });
+            
+            tbody.innerHTML = html;
+          })
+          .catch(err => {
+            console.error('Error loading users:', err);
+            showNotification('Unable to load users', 'danger');
+            document.getElementById('users-tbody').innerHTML = '';
+          });
+      }
+
+      // Toggle user status
+      function toggleUserStatus(userId) {
+        if (!confirm('Toggle user status?')) return;
+        
+        fetch(`/admin/user/${userId}/toggle-status`, { method: 'POST', credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              loadUsers();
+              loadUserStats();
+            }
+          })
+          .catch(err => console.error('Error toggling status:', err));
+      }
+
+      // Delete user
+      function deleteUser(userId) {
+        if (!confirm('Delete this user? This cannot be undone.')) return;
+        
+        fetch(`/admin/user/${userId}/delete`, { method: 'POST', credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              loadUsers();
+              loadUserStats();
+            }
+          })
+          .catch(err => console.error('Error deleting user:', err));
+      }
+
+      // Event listeners for filters
+      document.getElementById('search-box').addEventListener('input', loadUsers);
+      document.getElementById('status-filter').addEventListener('change', loadUsers);
+
+      // Load data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadUserStats();
+        loadUsers();
+        // Refresh every 30 seconds
+        setInterval(() => {
+          loadUserStats();
+          loadUsers();
+        }, 30000);
+      });
+    </script>
+</body>
+</html>

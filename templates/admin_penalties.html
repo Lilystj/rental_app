@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penalty Management - WheelShare Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: #0f1115;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 220px;
+            background: #20242a;
+            padding: 2rem 1rem 1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            z-index: 100;
+            border-right: 1px solid #23272b;
+        }
+        .sidebar .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ff9800;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            font-weight: 500;
+            border-radius: 6px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.2rem;
+            transition: background 0.2s, color 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover {
+            background: #ff9800;
+            color: #181c20;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 2rem 2.5rem 1rem 2.5rem;
+        }
+        .admin-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .admin-topbar .title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .card-dark {
+            background: #23272b;
+            border-radius: 12px;
+            box-shadow: 0 0 12px #ff980040;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 152, 0, 0.1);
+        }
+        .penalty-card {
+            background: #202428;
+            border-left: 4px solid #ff9800;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+        .penalty-card:hover {
+            box-shadow: 0 5px 20px rgba(255, 152, 0, 0.2);
+            transform: translateX(5px);
+        }
+        .penalty-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .penalty-user {
+            font-weight: 600;
+            color: #ff9800;
+            font-size: 1.1rem;
+        }
+        .penalty-vehicle {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+        .penalty-amount {
+            background: rgba(255, 152, 0, 0.1);
+            padding: 0.8rem 1.2rem;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .penalty-amount-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ff9800;
+        }
+        .penalty-amount-label {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .penalty-status {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-unpaid {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        .status-paid {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        .penalty-details {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            border-left: 2px solid #ff9800;
+        }
+        .penalty-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn-edit-penalty {
+            background: #2196f3;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-edit-penalty:hover {
+            background: #1976d2;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .filter-group select, .filter-group input {
+            background: #20242a;
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
+        }
+        .stat-box {
+            background: rgba(255, 152, 0, 0.05);
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ff9800;
+        }
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .modal-content {
+            background: #23272b;
+            border: 1px solid rgba(255, 152, 0, 0.2);
+        }
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 152, 0, 0.1);
+        }
+        .modal-title {
+            color: #ff9800;
+            font-weight: 700;
+        }
+        .form-control {
+            background: #1a1d20;
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            color: #fff;
+        }
+        .form-control:focus {
+            background: #1a1d20;
+            border-color: #ff9800;
+            color: #fff;
+            box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
+        }
+        .form-label {
+            color: #ff9800;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .btn-primary {
+            background: #ff9800;
+            color: #181c20;
+            border: none;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: #ffa726;
+            color: #181c20;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #aaa;
+        }
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+        @media (max-width: 1100px) {
+            .main-content { margin-left: 0; padding: 1rem; }
+            .sidebar { position: static; width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid #23272b; }
+        }
+
+        /* Car Animation Styles for Notifications */
+        .car-notification {
+            position: fixed;
+            top: 20px;
+            right: -400px; /* Start off-screen */
+            z-index: 9999;
+            width: 350px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-weight: 600;
+            color: #181c20;
+            border: 3px solid #fff;
+            animation: driveIn 0.8s ease-out forwards, bounce 0.3s ease-in-out 0.8s;
+            overflow: hidden;
+        }
+
+        .car-notification.success {
+            background: linear-gradient(135deg, #4caf50, #81c784);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .car-notification.danger {
+            background: linear-gradient(135deg, #f44336, #ef5350);
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+        }
+
+        .car-notification.warning {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+        }
+
+        .car-notification.info {
+            background: linear-gradient(135deg, #2196f3, #64b5f6);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+        }
+
+        .car-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .car-icon {
+            font-size: 2rem;
+            animation: carShake 0.5s ease-in-out infinite alternate;
+        }
+
+        .car-message {
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .car-wheels {
+            position: relative;
+            width: 30px;
+            height: 30px;
+        }
+
+        .wheel {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            border: 2px solid #666;
+            bottom: 0;
+        }
+
+        .wheel.left {
+            left: 0;
+            animation: spinWheel 2s linear infinite;
+        }
+
+        .wheel.right {
+            right: 0;
+            animation: spinWheel 2s linear infinite reverse;
+        }
+
+        .car-notification.driving-out {
+            animation: driveOut 0.8s ease-in forwards;
+        }
+
+        @keyframes driveIn {
+            0% {
+                right: -400px;
+                transform: rotate(-5deg);
+            }
+            50% {
+                transform: rotate(2deg);
+            }
+            100% {
+                right: 20px;
+                transform: rotate(0deg);
+            }
+        }
+
+        @keyframes driveOut {
+            0% {
+                right: 20px;
+                transform: rotate(0deg);
+            }
+            50% {
+                transform: rotate(-3deg);
+            }
+            100% {
+                right: -400px;
+                transform: rotate(5deg);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes spinWheel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes carShake {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(2px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/bookings">Bookings</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link" href="/admin/subscriptions">Manage Plans</a>
+        <a class="nav-link active" href="/admin/penalties">Penalty Management</a>
+    </div>
+
+    <div class="main-content">
+        <div class="admin-topbar">
+            <div class="title">⚠️ Penalty Management</div>
+            <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+        </div>
+
+        <div class="card-dark">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div class="stat-box">
+                    <div class="stat-value" id="total-penalties">0</div>
+                    <div class="stat-label">Total Penalties</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="total-amount">₹0</div>
+                    <div class="stat-label">Total Amount Pending</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="unpaid-count">0</div>
+                    <div class="stat-label">Unpaid Penalties</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="paid-count">0</div>
+                    <div class="stat-label">Paid Penalties</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-dark">
+            <div style="margin-bottom: 1.5rem;">
+                <label class="form-label">Filter by Status:</label>
+                <div class="filter-group">
+                    <select id="status-filter" onchange="filterPenalties()">
+                        <option value="">All Penalties</option>
+                        <option value="unpaid">Unpaid Only</option>
+                        <option value="paid">Paid Only</option>
+                    </select>
+                    <input type="text" id="search-box" placeholder="Search by user name..." onkeyup="filterPenalties()">
+                </div>
+            </div>
+
+            <div id="penalties-container" data-admin="{{ '1' if session.get('role')=='admin' else '0' }}">
+                <div class="empty-state">
+                    <p>Loading penalties...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Penalty Modal -->
+    <div class="modal fade" id="editPenaltyModal" tabindex="-1" aria-labelledby="editPenaltyLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPenaltyLabel">Edit Penalty</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editPenaltyForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-booking-id">
+                        <div class="mb-3">
+                            <label for="edit-user-name" class="form-label">User</label>
+                            <input type="text" class="form-control" id="edit-user-name" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-vehicle-name" class="form-label">Vehicle</label>
+                            <input type="text" class="form-control" id="edit-vehicle-name" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-penalty-amount" class="form-label">Penalty Amount (₹)</label>
+                            <input type="number" class="form-control" id="edit-penalty-amount" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-damage-report" class="form-label">Damage Report / Reason</label>
+                            <textarea class="form-control" id="edit-damage-report" rows="3" placeholder="Describe the damage or reason for penalty..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Penalty</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // admin flag read from container attribute (avoids Jinja in JS)
+        let allPenalties = [];
+        const isAdmin = document.getElementById('penalties-container').dataset.admin === '1';
+
+        // Show notification with car animation
+        function showNotification(message, type = 'info') {
+            const carHTML = `
+              <div class="car-notification ${type}" id="car-notification">
+                <div class="car-body">
+                  <div class="car-icon">🚗</div>
+                  <div class="car-message">${message}</div>
+                </div>
+                <div class="car-wheels">
+                  <div class="wheel left"></div>
+                  <div class="wheel right"></div>
+                </div>
+              </div>
+            `;
+
+            // Remove any existing car notification
+            const existingCar = document.getElementById('car-notification');
+            if (existingCar) {
+                existingCar.remove();
+            }
+
+            const container = document.createElement('div');
+            container.innerHTML = carHTML;
+            document.body.appendChild(container.firstElementChild);
+
+            // Auto-remove after 4 seconds with driving out animation
+            setTimeout(() => {
+                const car = document.getElementById('car-notification');
+                if (car) {
+                    car.classList.add('driving-out');
+                    setTimeout(() => {
+                        if (car.parentNode) car.remove();
+                    }, 800); // Wait for driveOut animation to complete
+                }
+            }, 4000);
+        }
+
+        // Load all penalties
+        function loadPenalties() {
+            fetch('/api/admin/penalties-list', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    allPenalties = data.penalties || [];
+                    renderPenalties();
+                    updateStats();
+                })
+                .catch(err => {
+                    console.error('Error loading penalties:', err);
+                    showNotification('Error loading penalties', 'danger');
+                    document.getElementById('penalties-container').innerHTML = '<div class="empty-state"><p>Error loading penalties</p></div>';
+                });
+        }
+
+        // Render penalties
+        function renderPenalties(penalties = allPenalties) {
+            const container = document.getElementById('penalties-container');
+            
+            if (!penalties || penalties.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>✓ No penalties to manage!</p></div>';
+                return;
+            }
+
+            let html = '';
+            penalties.forEach(penalty => {
+                const statusClass = penalty.penalty_paid ? 'status-paid' : 'status-unpaid';
+                const statusText = penalty.penalty_paid ? '✓ PAID' : '⚠ UNPAID';
+                
+                // Build action buttons based on payment status
+                let actionButtons = '';
+                
+                if (penalty.penalty_paid) {
+                    // For PAID penalties: only show View Receipt
+                    actionButtons = `
+                        <a href="/pay/penalty/${penalty.booking_id}" class="btn btn-outline-success" style="padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            ✓ View Receipt →
+                        </a>
+                    `;
+                } else {
+                    // For UNPAID penalties: always allow edit, pay only for users (not admin)
+                    actionButtons = `
+                        <button class="btn-edit-penalty" 
+                            data-id="${penalty.booking_id}"
+                            data-user="${penalty.user_name.replace(/"/g, '&quot;')}"
+                            data-vehicle="${penalty.vehicle_name.replace(/"/g, '&quot;')}"
+                            data-amount="${penalty.penalty_amount}"
+                            data-damage="${penalty.damage_report.replace(/"/g, '&quot;')}">
+                            Edit Penalty
+                        </button>
+                    `;
+                    if (!isAdmin) {
+                        actionButtons += `
+                        <a href="/pay/penalty/${penalty.booking_id}" class="btn btn-outline-warning" style="padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            Pay Penalty →
+                        </a>
+                        `;
+                    }
+                }
+                
+                html += `
+                    <div class="penalty-card">
+                        <div class="penalty-header">
+                            <div>
+                                <div class="penalty-user">${penalty.user_name}</div>
+                                <div class="penalty-vehicle">${penalty.vehicle_name} • Booking #${penalty.booking_id}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="penalty-amount">
+                                    <div class="penalty-amount-value">₹${Number(penalty.penalty_amount).toLocaleString()}</div>
+                                    <div class="penalty-amount-label">Penalty</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <span class="penalty-status ${statusClass}">${statusText}</span>
+                            <span style="color: #aaa; margin-left: 1rem;">Status: ${penalty.booking_status}</span>
+                        </div>
+                        <div class="penalty-details">
+                            <strong>Damage Report:</strong> ${penalty.damage_report}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 1rem;">
+                            Booking: ${penalty.booking_date} → ${penalty.due_date}
+                        </div>
+                        <div class="penalty-actions">
+                            ${actionButtons}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            // attach event listeners to new edit buttons
+            container.querySelectorAll('.btn-edit-penalty').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const bookingId = btn.dataset.id;
+                    const userName = btn.dataset.user;
+                    const vehicleName = btn.dataset.vehicle;
+                    const amount = btn.dataset.amount;
+                    const damage = btn.dataset.damage;
+                    openEditModal(bookingId, userName, vehicleName, amount, damage);
+                });
+            });
+        }
+
+        // Filter penalties
+        function filterPenalties() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const searchTerm = document.getElementById('search-box').value.toLowerCase();
+
+            let filtered = allPenalties.filter(p => {
+                const matchStatus = !statusFilter || 
+                    (statusFilter === 'unpaid' && !p.penalty_paid) || 
+                    (statusFilter === 'paid' && p.penalty_paid);
+                
+                const matchSearch = !searchTerm || p.user_name.toLowerCase().includes(searchTerm);
+                
+                return matchStatus && matchSearch;
+            });
+
+            renderPenalties(filtered);
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalPenalties = allPenalties.length;
+            const totalAmount = allPenalties.reduce((sum, p) => sum + p.penalty_amount, 0);
+            const unpaidCount = allPenalties.filter(p => !p.penalty_paid).length;
+            const paidCount = allPenalties.filter(p => p.penalty_paid).length;
+
+            document.getElementById('total-penalties').textContent = totalPenalties;
+            document.getElementById('total-amount').textContent = '₹' + Number(totalAmount).toLocaleString();
+            document.getElementById('unpaid-count').textContent = unpaidCount;
+            document.getElementById('paid-count').textContent = paidCount;
+        }
+
+        // Open edit modal
+        function openEditModal(bookingId, userName, vehicleName, amount, damage) {
+            document.getElementById('edit-booking-id').value = bookingId;
+            document.getElementById('edit-user-name').value = userName;
+            document.getElementById('edit-vehicle-name').value = vehicleName;
+            document.getElementById('edit-penalty-amount').value = amount;
+            document.getElementById('edit-damage-report').value = damage || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editPenaltyModal'));
+            modal.show();
+        }
+
+        // Handle form submission
+        document.getElementById('editPenaltyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const bookingId = document.getElementById('edit-booking-id').value;
+            const penaltyAmount = document.getElementById('edit-penalty-amount').value;
+            const damageReport = document.getElementById('edit-damage-report').value;
+
+            fetch('/api/admin/update-penalty', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    booking_id: bookingId,
+                    penalty_amount: penaltyAmount,
+                    damage_report: damageReport
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('editPenaltyModal')).hide();
+                    showNotification('✓ Penalty updated successfully!', 'success');
+                    loadPenalties();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not update penalty'), 'danger');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showNotification('Error updating penalty', 'danger');
+            });
+        });
+
+        // Load penalties on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPenalties();
+        });
+
+        // Refresh data every 30 seconds
+        setInterval(loadPenalties, 30000);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

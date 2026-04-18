@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Bookings - WheelShare Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+      body { 
+        background: #0f1115; 
+        color: #fff; 
+        min-height: 100vh; 
+        margin: 0; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      }
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 220px;
+        background: #20242a;
+        padding: 2rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        z-index: 100;
+        border-right: 1px solid #23272b;
+      }
+      .sidebar .logo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ff9800;
+        margin-bottom: 2rem;
+        letter-spacing: 2px;
+      }
+      .sidebar .nav-link {
+        color: #fff;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.2rem;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #ff9800;
+        color: #181c20;
+      }
+      .main-content {
+        margin-left: 240px;
+        padding: 2rem 2.5rem;
+        background: #181a1f;
+        min-height: 100vh;
+      }
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      .filter-card {
+        background: #23272b;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+      .table-dark {
+        background: #23272b;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .table-dark thead tr, .table-dark thead {
+        background: #20242a;
+      }
+      .table-dark tbody tr:hover {
+        background: rgba(255, 152, 0, 0.05);
+      }
+      .table-responsive table th, .table-responsive table td {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+      }
+      .table-responsive { max-height: 60vh; overflow-y: auto; }
+      .table-dark tbody tr:nth-child(odd) { background: #252a2f; }
+      .sidebar .nav-link { padding: 0.6rem 0.8rem; }
+      .admin-topbar .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .admin-topbar .profile {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .admin-topbar .profile-img {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ff9800;
+      }
+      .card-dark {
+        background: #23272b;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 152, 0, 0.1);
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+      }
+      .table-dark {
+        background: #23272b;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .table-dark thead {
+        background: #20242a;
+      }
+      .table-dark tbody tr:hover {
+        background: rgba(255, 152, 0, 0.05);
+      }
+
+      /* Car Animation Styles for Notifications */
+      .car-notification {
+        position: fixed;
+        top: 20px;
+        right: -400px; /* Start off-screen */
+        z-index: 9999;
+        width: 350px;
+        height: 80px;
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        font-weight: 600;
+        color: #181c20;
+        border: 3px solid #fff;
+        animation: driveIn 0.8s ease-out forwards, bounce 0.3s ease-in-out 0.8s;
+        overflow: hidden;
+      }
+
+      .car-notification.success {
+        background: linear-gradient(135deg, #4caf50, #81c784);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+      }
+
+      .car-notification.danger {
+        background: linear-gradient(135deg, #f44336, #ef5350);
+        box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+      }
+
+      .car-notification.warning {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+      }
+
+      .car-notification.info {
+        background: linear-gradient(135deg, #2196f3, #64b5f6);
+        box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+      }
+
+      .car-body {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .car-icon {
+        font-size: 2rem;
+        animation: carShake 0.5s ease-in-out infinite alternate;
+      }
+
+      .car-message {
+        flex: 1;
+        font-size: 0.9rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .car-wheels {
+        position: relative;
+        width: 30px;
+        height: 30px;
+      }
+
+      .wheel {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #333;
+        border-radius: 50%;
+        border: 2px solid #666;
+        bottom: 0;
+      }
+
+      .wheel.left {
+        left: 0;
+        animation: spinWheel 2s linear infinite;
+      }
+
+      .wheel.right {
+        right: 0;
+        animation: spinWheel 2s linear infinite reverse;
+      }
+
+      .car-notification.driving-out {
+        animation: driveOut 0.8s ease-in forwards;
+      }
+
+      @keyframes driveIn {
+        0% {
+          right: -400px;
+          transform: rotate(-5deg);
+        }
+        50% {
+          transform: rotate(2deg);
+        }
+        100% {
+          right: 20px;
+          transform: rotate(0deg);
+        }
+      }
+
+      @keyframes driveOut {
+        0% {
+          right: 20px;
+          transform: rotate(0deg);
+        }
+        50% {
+          transform: rotate(-3deg);
+        }
+        100% {
+          right: -400px;
+          transform: rotate(5deg);
+        }
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+
+      @keyframes spinWheel {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes carShake {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(2px); }
+      }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">WHEELSHARE</div>
+        <a class="nav-link" href="/admin">Dashboard</a>
+        <a class="nav-link" href="/admin/vehicles">Vehicle Management</a>
+        <a class="nav-link" href="/admin/users">User Management</a>
+        <a class="nav-link" href="/admin/reports">Reports</a>
+        <a class="nav-link" href="/admin/feedbacks">Feedback</a>
+        <a class="nav-link" href="/admin/subscriptions">Manage Plans</a>
+        <a class="nav-link" href="/admin/subscriptions/users">User Subscriptions</a>
+        <a class="nav-link" href="/admin/penalties">Penalty Management</a>
+        <a class="nav-link active" href="/admin/bookings">Bookings</a>
+    </div>
+    <div class="main-content" style="padding-top:1rem;">
+        <div class="admin-topbar">
+            <div class="title">All Bookings</div>
+            <div class="profile">
+                <span>Hi, Admin</span>
+                <img src="{{ url_for('static', filename='uploads/team1.jpg') }}" class="profile-img" alt="Profile">
+                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+        <div class="filter-card mb-3">
+            <div class="row align-items-center g-2">
+                <div class="col-auto">
+                    <label for="statusFilter" class="form-label small text-muted">Status:</label>
+                    <select id="statusFilter" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        <option>Pending</option>
+                        <option>Confirmed</option>
+                        <option>Paid</option>
+                        <option>Booked</option>
+                        <option>Handover</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button id="filterBtn" class="btn btn-primary btn-sm mt-1">Apply</button>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive card-dark">
+            <table class="table table-dark table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Renter</th>
+                        <th>Vehicle</th>
+                        <th>Days</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Booked</th>
+                        <th>Due</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="all-bookings-tbody">
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Penalty Modal -->
+    <div class="modal fade" id="penaltyModal" tabindex="-1" aria-labelledby="penaltyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: #23272b; color: #fff; border: 1px solid rgba(255, 152, 0, 0.3);">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="penaltyModalLabel">Issue Penalty</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="penaltyForm">
+                        <div class="mb-3">
+                            <label for="penaltyAmount" class="form-label">Penalty Amount (₹)</label>
+                            <input type="number" class="form-control" id="penaltyAmount" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="penaltyReason" class="form-label">Reason</label>
+                            <textarea class="form-control" id="penaltyReason" rows="3" placeholder="Enter penalty reason..." required></textarea>
+                        </div>
+                        <input type="hidden" id="penaltyBookingId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="submitPenalty()">Issue Penalty</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      function showNotification(message, type = 'info') {
+        const carHTML = `
+          <div class="car-notification ${type}" id="car-notification">
+            <div class="car-body">
+              <div class="car-icon">🚗</div>
+              <div class="car-message">${message}</div>
+            </div>
+            <div class="car-wheels">
+              <div class="wheel left"></div>
+              <div class="wheel right"></div>
+            </div>
+          </div>
+        `;
+
+        // Remove any existing car notification
+        const existingCar = document.getElementById('car-notification');
+        if (existingCar) {
+          existingCar.remove();
+        }
+
+        const container = document.createElement('div');
+        container.innerHTML = carHTML;
+        document.body.appendChild(container.firstElementChild);
+
+        // Auto-remove after 4 seconds with driving out animation
+        setTimeout(() => {
+          const car = document.getElementById('car-notification');
+          if (car) {
+            car.classList.add('driving-out');
+            setTimeout(() => {
+              if (car.parentNode) car.remove();
+            }, 800); // Wait for driveOut animation to complete
+          }
+        }, 4000);
+      }
+
+      function formatCurrency(num) {
+        return '₹' + Number(num).toLocaleString();
+      }
+
+      function loadAllBookings() {
+        const status = document.getElementById('statusFilter').value;
+        let url = '/api/admin/bookings-list?limit=all';
+        if (status) url += '&status=' + encodeURIComponent(status);
+
+        fetch(url, { credentials: 'include' })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            const tbody = document.getElementById('all-bookings-tbody');
+            tbody.innerHTML = '';
+            if (data.bookings.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No bookings found</td></tr>';
+              return;
+            }
+            data.bookings.forEach(b => {
+              const renterName = b.renter || b.user || 'Unknown';
+              let actionsHtml = '';
+              
+              // Check if penalty decision has been made
+              const hasPenaltyDecision = (b.penalty_amount !== undefined && b.penalty_amount !== null) || 
+                                        (b.penalty_paid !== undefined && b.penalty_paid !== null);
+              
+              if (b.status === 'Completed' && !hasPenaltyDecision) {
+                actionsHtml = `
+                  <button class="btn btn-warning btn-sm me-1" onclick="openPenaltyModal(${b.id})">
+                    <i class="fas fa-exclamation-triangle"></i> Penalty
+                  </button>
+                  <button class="btn btn-success btn-sm" onclick="markNoPenalty(${b.id})">
+                    <i class="fas fa-check"></i> No Penalty
+                  </button>
+                `;
+              } else if (b.status === 'Completed' && hasPenaltyDecision) {
+                if (b.penalty_amount > 0) {
+                  actionsHtml = '<span class="text-warning small"><i class="fas fa-exclamation-triangle"></i> Penalty Issued</span>';
+                } else {
+                  actionsHtml = '<span class="text-success small"><i class="fas fa-check"></i> No Penalty</span>';
+                }
+              } else {
+                actionsHtml = '<span class="text-muted small">N/A</span>';
+              }
+              const row = `
+                <tr>
+                  <td>${b.id}</td>
+                  <td>${renterName}</td>
+                  <td>${b.vehicle || ''}</td>
+                  <td>${b.days || ''}</td>
+                  <td>${b.total_price ? formatCurrency(b.total_price) : ''}</td>
+                  <td>${b.status || ''}</td>
+                  <td>${b.booking_date || ''}</td>
+                  <td>${b.due_date || ''}</td>
+                  <td>${actionsHtml}</td>
+                </tr>
+              `;
+              tbody.innerHTML += row;
+            });
+          })
+          .catch(err => {
+            console.error('Error loading bookings:', err);
+            showNotification('Unable to load bookings list', 'danger');
+          });
+      }
+
+      document.getElementById('filterBtn').addEventListener('click', loadAllBookings);
+      document.addEventListener('DOMContentLoaded', loadAllBookings);
+
+      // Penalty modal functions
+      function openPenaltyModal(bookingId) {
+        document.getElementById('penaltyBookingId').value = bookingId;
+        document.getElementById('penaltyForm').reset();
+        const modal = new bootstrap.Modal(document.getElementById('penaltyModal'));
+        modal.show();
+      }
+
+      function submitPenalty() {
+        const bookingId = document.getElementById('penaltyBookingId').value;
+        const amount = document.getElementById('penaltyAmount').value;
+        const reason = document.getElementById('penaltyReason').value;
+
+        if (!amount || !reason) {
+          showNotification('Please fill all fields', 'warning');
+          return;
+        }
+
+        fetch('/admin/penalty/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            booking_id: bookingId,
+            amount: parseFloat(amount),
+            reason: reason
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showNotification('Penalty issued successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('penaltyModal')).hide();
+            loadAllBookings(); // Refresh the table
+          } else {
+            showNotification(data.message || 'Failed to issue penalty', 'danger');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showNotification('Failed to issue penalty', 'danger');
+        });
+      }
+
+      function markNoPenalty(bookingId) {
+        if (!confirm('Are you sure this booking has no penalty?')) {
+          return;
+        }
+
+        fetch('/admin/penalty/no-penalty', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            booking_id: bookingId
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showNotification('Booking marked as no penalty', 'success');
+            loadAllBookings(); // Refresh the table
+          } else {
+            showNotification(data.message || 'Failed to mark no penalty', 'danger');
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          showNotification('Failed to mark no penalty', 'danger');
+        });
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
